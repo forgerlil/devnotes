@@ -1,16 +1,17 @@
 {
-	"compilerOptions": {
-		"target": "es2016",
-		"module": "ESNext",
-		"rootDir": "./src",
-		"moduleResolution": "node10",
-		"baseUrl": "./",
-		"paths": {
-			"@/*": ["./src/*"]
-		},
-		"forceConsistentCasingInFileNames": true,
-		"strict": true,
-		"noImplicitAny": true,
-		"allowSyntheticDefaultImports": true
-	}
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

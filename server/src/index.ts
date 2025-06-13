@@ -1,11 +1,21 @@
-import express from 'express';
+import express, { Request, Response } from 'express'
+import cors from 'cors'
+import { errorHandler } from './middlewares/errorHandler.js'
+import configs from './configs/index.js'
 
-const app = express();
+const app = express()
 
-app.get('/', (req, res) => {
-	res.send('Hello World');
-});
+app.use(express.json())
+app.use(
+  cors({
+    origin: [configs.clientUrl],
+  }),
+)
 
-app.listen(process.env.PORT, () =>
-	console.log(`Server up on port ${process.env.PORT}`)
-);
+app.all('/ping', (req: Request, res: Response) => {
+  res.send('pong')
+})
+
+app.use(errorHandler)
+
+app.listen(configs.port, () => console.log(`Server up on port ${configs.port}`))

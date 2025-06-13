@@ -1,12 +1,25 @@
-import { defineConfig } from "eslint/config";
-import globals from "globals";
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-
+import js from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+import json from '@eslint/json'
+import { defineConfig } from 'eslint/config'
 
 export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,ts}"] },
-  { files: ["**/*.{js,mjs,cjs,ts}"], languageOptions: { globals: globals.browser } },
-  { files: ["**/*.{js,mjs,cjs,ts}"], plugins: { js }, extends: ["js/recommended"] },
-  tseslint.configs.recommended,
-]);
+  {
+    files: ['src/**/*.{js,mjs,cjs,ts,mts,cts}'],
+    plugins: { js },
+    extends: ['js/recommended'],
+  },
+  {
+    files: ['src/**/*.{js,mjs,cjs,ts,mts,cts}'],
+    languageOptions: { globals: globals.node },
+  },
+  ...tseslint.configs.recommended,
+  { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
+  {
+    ignores: ['node_modules', 'dist'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'warn',
+    },
+  },
+])
