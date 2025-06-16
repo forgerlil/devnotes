@@ -1,20 +1,55 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import configs from '@/configs/index.js'
 import { getCollection } from '@/db/index.js'
+import ErrorHandler from '@/utils/errorHandler.js'
+import { User } from '@/types/user.types.js'
 
 const signUp = async (req: Request, res: Response) => {
-  const { email, password } = req.body
-  const collection = await getCollection('users', 'devnotes')
-  const user = await collection.findOne({ email })
+  try {
+    const { email, password } = req.body
+    const collection = await getCollection('users')
+    const user = await collection.findOne<User>({ email })
 
-  if (user) {
-    res.status(400).json({ message: 'User already exists' })
-    return
+    if (user) throw new ErrorHandler('User already exists', 400)
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+    await collection.insertOne({ email, password: hashedPassword })
+
+    const token = jwt.sign({ email }, configs.jwtSecret as string)
+    res.set('Authorization', `Bearer ${token}`)
+    res.status(201).end()
+  } catch (error) {
+    if (error instanceof ErrorHandler) {
+      res.status(error.statusCode).json({ message: error.message })
+    } else {
+      res.status(500).json({ message: 'Internal server error' })
+    }
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10)
-  const newUser = await collection.insertOne({ email, password: hashedPassword })
-  res.status(201).json(newUser)
 }
 
-export { signUp }
+const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body
+    const collection = await getCollection('users')
+    const user = await collection.findOne<User>({ email })
+
+    if (!user) throw new ErrorHandler('User not found', 400)
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) throw new ErrorHandler('Invalid password', 400)
+
+    const token = jwt.sign({ email }, configs.jwtSecret as string)
+    res.set('Authorization', `Bearer ${token}`)
+    res.status(200).end()
+  } catch (error) {
+    if (error instanceof ErrorHandler) {
+      res.status(error.statusCode).json({ message: error.message })
+    } else {
+      res.status(500).json({ message: 'Internal server error' })
+    }
+  }
+}
+
+export { signUp, login }

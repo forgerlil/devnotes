@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express'
-import { Result, validationResult } from 'express-validator'
-import { signUpValidation } from './user.js'
+import { Request, Response, NextFunction } from 'express'
+import { Result, ValidationChain, validationResult } from 'express-validator'
+import { loginValidation, signUpValidation } from './user.js'
 
 export const validate = (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -14,8 +14,12 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-const addValidate = (validations: RequestHandler[]) => [...validations, validate]
+const addValidate = (validations: Record<string, ValidationChain>) => [
+  ...Object.values(validations),
+  validate,
+]
 
 export default {
-  signUp: addValidate(Object.values(signUpValidation)),
+  signUp: addValidate(signUpValidation),
+  login: addValidate(loginValidation),
 }
