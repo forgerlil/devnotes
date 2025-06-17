@@ -1,10 +1,9 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import configs from '@/configs/index.js'
 import { getCollection } from '@/db/index.js'
 import ErrorHandler from '@/utils/errorHandler.js'
 import { User } from '@/types/user.types.js'
+import { generateTokens } from '@/utils/auth/tokens.js'
 
 const signUp = async (req: Request, res: Response) => {
   try {
@@ -17,8 +16,14 @@ const signUp = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10)
     await collection.insertOne({ email, password: hashedPassword })
 
-    const token = jwt.sign({ email }, configs.jwtSecret as string)
-    res.set('Authorization', `Bearer ${token}`)
+    const { accessToken, refreshToken } = generateTokens(email)
+    res.set('Authorization', `Bearer ${accessToken}`)
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
     res.status(201).end()
   } catch (error) {
     if (error instanceof ErrorHandler) {
@@ -40,8 +45,17 @@ const login = async (req: Request, res: Response) => {
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) throw new ErrorHandler('Invalid password', 400)
 
-    const token = jwt.sign({ email }, configs.jwtSecret as string)
-    res.set('Authorization', `Bearer ${token}`)
+    const { accessToken, refreshToken } = generateTokens(email)
+
+    await collection.updateOne({ email }, { $set: { refreshToken } })
+
+    res.set('Authorization', `Bearer ${accessToken}`)
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
     res.status(200).end()
   } catch (error) {
     if (error instanceof ErrorHandler) {
