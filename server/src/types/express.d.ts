@@ -1,7 +1,7 @@
-import { JwtPayload } from 'jsonwebtoken'
-
 declare module 'express' {
   interface Request {
-    decoded?: JwtPayload
+    decoded?: { userId: string; sessionId: string }
   }
 }
+
+export {}
