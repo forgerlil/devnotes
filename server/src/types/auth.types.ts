@@ -39,3 +39,8 @@ export type Session = {
   tokenHistory: TokenHistory[]
   expiresAt: Date
 }
+
+export type RedisSearchResult = {
+  total: number
+  documents: { id: string; value: Session }[]
+}
