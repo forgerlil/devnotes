@@ -1,10 +1,11 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { Session, TokenHistory } from '@/types/auth.types.js'
+import { Session } from '@/types/auth.types.js'
 import { generateTokens, verifyToken } from '@/utils/auth/tokens.js'
 import ErrorHandler from '@/utils/errorHandler.js'
-import { hash } from '@/utils/auth/hash.js'
-import { revokeAllTokens, getSession, addToHistory } from '@/utils/auth/redis.js'
+import { hash } from '@/utils/hash.js'
+import { getSession, addToHistory, findToken } from '@/utils/auth/redis.js'
+import { autoReuseDetection } from '@/utils/auth/autoReuseDetection.js'
 
 const tokenVerify: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]
@@ -21,42 +22,30 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
       req.decoded = { userId: decodedAccess.sub, sessionId: decodedAccess.sessionId }
       return next()
     } catch (error) {
+      console.log('Access token expired')
       if (!(error instanceof jwt.TokenExpiredError)) return next(error)
     }
   }
 
   try {
     const decodedRefresh = verifyToken(refreshToken, 'refresh')
-    const { userId, sessionId } = decodedRefresh
+    const { sub: userId, sessionId } = decodedRefresh
 
-    console.log('Verifying refresh token')
     // Find token and verify status
     const session = (await getSession(sessionId)) as Session
-    if (!session) throw new ErrorHandler('Invalid session', 401)
+    if (!session) throw new ErrorHandler('Authentication not found', 401)
 
-    console.log('Session found, checking token history')
-    const tokenPair = session.tokenHistory.find(
-      (token: TokenHistory) => token.refreshToken.value === hash(refreshToken),
-    )
+    const tokenPair = findToken(session, hash(refreshToken))
+    if (!tokenPair) throw new ErrorHandler('Authentication not found', 401)
+    if (tokenPair.refreshToken.status === 'revoked') await autoReuseDetection(sessionId)
 
-    if (!tokenPair) throw new ErrorHandler('Invalid token', 401)
-
-    // If client-sent token was already revoked, revoke all tokens
-    if (tokenPair.refreshToken.status === 'revoked') {
-      await revokeAllTokens(sessionId)
-      console.log(`⚠️ Tokens revoked for session ${sessionId}, user ${userId}`)
-      throw new ErrorHandler('Invalid token', 401)
-    }
-
-    console.log('Token valid, generating new tokens')
-    // Generate new tokens and add them to the session history
+    // Generate new tokens and add them to session history
     const [newAccessToken, newRefreshToken] = generateTokens(userId, sessionId)
-    await addToHistory(sessionId, newAccessToken)
+    await addToHistory(sessionId, newAccessToken, newRefreshToken)
 
-    console.log('new tokens: ', newAccessToken, newRefreshToken)
     res.cookie('refresh_token', newRefreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     res.set('Authorization', `Bearer ${newAccessToken}`)
@@ -65,6 +54,7 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
 
     return next()
   } catch (error) {
+    res.clearCookie('refresh_token')
     return next(error)
   }
 }

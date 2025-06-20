@@ -8,6 +8,7 @@ const client = new MongoClient(uri)
 
 const getDB = async (dbName: string = configs.dbName) => {
   const connection = await client.connect()
+  console.log('MongoDB Client Connected')
   const db = connection.db(dbName)
   if (!db) throw new Error('Database not found')
   return db

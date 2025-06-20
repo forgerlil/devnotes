@@ -10,9 +10,10 @@ app.use(express.json())
 app.use(
   cors({
     origin: [configs.clientUrl],
+    credentials: true,
   }),
 )
-app.use(routes)
+app.use('/api', routes)
 app.use(errorHandler)
 
 app.listen(configs.port, () => console.log(`Server up on port ${configs.port}`))

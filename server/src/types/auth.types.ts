@@ -35,10 +35,7 @@ export type TokenHistory = {
 
 export type Session = {
   userId: string
-  meta: {
-    ip: string
-    userAgent: string
-  }
+  deviceInfo: string
   tokenHistory: TokenHistory[]
   expiresAt: Date
 }
