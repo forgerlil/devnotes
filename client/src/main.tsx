@@ -9,12 +9,11 @@ createRoot(document.getElementById('root')!).render(
     <App />
     <ToastContainer
       position='top-center'
-      autoClose={3000}
+      autoClose={false}
       hideProgressBar
       closeButton={false}
       newestOnTop={false}
-      closeOnClick={false}
-      rtl={false}
+      closeOnClick
       pauseOnFocusLoss
       pauseOnHover
       theme='light'

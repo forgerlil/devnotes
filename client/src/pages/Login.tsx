@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
-import { toast } from 'react-toastify'
 import { validate } from '@/utils/validate'
+import { toastError, toastSuccess } from '@/lib/toastify'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ const Login = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(error)
+      toastError(error)
       setError('')
     }
   }, [error])
@@ -34,11 +34,11 @@ const Login = () => {
     }
 
     if (!validate('password', formData.password, formData)) {
-      setError('Incorrect password')
+      setError('Incorrect credentials, please verify and try again')
       return
     }
 
-    toast.success('Login successful')
+    toastSuccess('Login successful')
   }
 
   return (

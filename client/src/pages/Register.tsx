@@ -4,7 +4,7 @@ import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
 import { validate } from '@/utils/validate'
 import { RegisterValidation } from '@/types/userValidation.types'
-import { toast } from 'react-toastify'
+import { toastError, toastSuccess } from '@/lib/toastify'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -42,7 +42,7 @@ const Register = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(error)
+      toastError(error)
       setError('')
     }
   }, [error])
@@ -151,7 +151,7 @@ const Register = () => {
       setError('Passwords do not match')
       return
     }
-    toast.success('Registration successful')
+    toastSuccess('Registration successful')
   }
 
   return (
