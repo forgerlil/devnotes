@@ -2,6 +2,8 @@ export const validate = (name: string, value: string, formData: Record<string, s
   switch (name) {
     case 'email':
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    case 'password':
+      return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)
     case 'containsNumbers':
       return /\d/.test(value)
     case 'containsLowercaseLetters':
