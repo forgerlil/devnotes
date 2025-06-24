@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
-import { toastSuccess, toastError } from '@/lib/toastify'
 import { validate } from '@/utils/validate'
 import { RegisterValidation } from '@/types/userValidation.types'
 import { toast } from 'react-toastify'
@@ -152,7 +151,7 @@ const Register = () => {
       setError('Passwords do not match')
       return
     }
-    toastSuccess('Registration successful')
+    toast.success('Registration successful')
   }
 
   return (
