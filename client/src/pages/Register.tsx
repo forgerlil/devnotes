@@ -5,6 +5,11 @@ import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
 import { validate } from '@/utils/validate'
 import { RegisterValidation } from '@/types/userValidation.types'
 import { toastError, toastSuccess } from '@/lib/toastify'
+import axios from 'axios'
+
+interface RegisterResponse {
+  message?: string
+}
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -133,7 +138,7 @@ const Register = () => {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!formData.email || !formData.password || !formData.confirmPassword) {
       setError('All fields are required')
@@ -151,7 +156,19 @@ const Register = () => {
       setError('Passwords do not match')
       return
     }
-    toastSuccess('Registration successful')
+
+    try {
+      const { data }: { data: RegisterResponse } = await axios.post('/api/auth/signup', formData)
+      // TODO: remove next line
+      toastSuccess(data.message || 'Registration successful')
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const { message } = error.response?.data as RegisterResponse
+        toastError(message || 'Registration unsuccessful, please try again')
+      } else {
+        toastError('Registration unsuccessful, please try again')
+      }
+    }
   }
 
   return (

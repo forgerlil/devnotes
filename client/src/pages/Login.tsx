@@ -2,8 +2,13 @@ import { useEffect, useState } from 'react'
 import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
+import axios from 'axios'
 import { validate } from '@/utils/validate'
 import { toastError, toastSuccess } from '@/lib/toastify'
+
+interface LoginResponse {
+  message?: string
+}
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -26,19 +31,28 @@ const Login = () => {
     setFormData({ ...formData, [name]: value })
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!formData.email || !formData.password) {
-      setError('All fields are required')
-      return
-    }
-
-    if (!validate('password', formData.password, formData)) {
+    if (
+      !validate('email', formData.email, formData) ||
+      !validate('password', formData.password, formData)
+    ) {
       setError('Incorrect credentials, please verify and try again')
       return
     }
 
-    toastSuccess('Login successful')
+    try {
+      const { data }: { data: LoginResponse } = await axios.post('/api/auth/login', formData)
+      // TODO: remove next line
+      toastSuccess(data.message || 'Login successful')
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const { message } = error.response?.data as LoginResponse
+        toastError(message || 'Login unsuccessful, please try again')
+      } else {
+        toastError('Login unsuccessful, please try again')
+      }
+    }
   }
 
   return (
