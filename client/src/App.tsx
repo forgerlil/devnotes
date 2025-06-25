@@ -1,8 +1,12 @@
+import Register from './pages/Register'
+import Login from './pages/Login'
+
 function App() {
   return (
-    <>
-      <h1 className='text-3xl font-bold'>Hello World</h1>
-    </>
+    <div className=''>
+      <Login />
+      {/* <Register /> */}
+    </div>
   )
 }
 
