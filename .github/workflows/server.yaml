@@ -7,9 +7,17 @@ on:
     paths:
       - 'server/**'
 
+env:
+  MONGO_URI: ${{ secrets.MONGODB_URI }}
+  REDIS_URI: ${{ secrets.REDIS_URI }}
+  JWT_SECRET: 'dummyvalueforworkflow'
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
 
     steps:
       - name: Checkout code
@@ -27,5 +35,18 @@ jobs:
       - name: Build server
         run: npm run build
 
-      - name: Run server
-        run: npm start
+      - name: Start server
+        run: |
+          npm start &
+          SERVER_PID=$!
+          for i in {1..10}; do
+            if curl -fs http://localhost:8000/api/ping; then
+              echo "✅ Server is serving."
+              exit 0
+            fi
+            echo "⏳ Waiting for server..."
+            sleep 1
+          done
+          kill $SERVER_PID
+          echo "❌ Server failed to respond in time."
+          exit 1

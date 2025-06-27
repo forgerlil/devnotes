@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
 
     steps:
       - name: Checkout code
@@ -31,4 +34,19 @@ jobs:
         run: npm run build
 
       - name: Run client
-        run: npm run preview
+        run: |
+          npm run preview &
+          SERVER_PID=$!
+
+          for i in {1..10}; do
+            if curl -fs http://localhost:4173/; then
+              echo "✅ Frontend is serving."
+              exit 0
+            fi
+            echo "⏳ Waiting for frontend..."
+            sleep 1
+          done
+
+          kill $SERVER_PID
+          echo "❌ Frontend failed to respond in time."
+          exit 1
