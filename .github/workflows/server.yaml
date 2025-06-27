@@ -32,8 +32,16 @@ jobs:
 
       - name: Start server
         run: |
-          PORT=8000 npm start &
+          npm start &
           SERVER_PID=$!
-          sleep 5
-          curl -f http://localhost:8000/api/ping || exit 1
+          for i in {1..10}; do
+            if curl -fs http://localhost:8000/api/ping; then
+              echo "✅ Server is serving."
+              exit 0
+            fi
+            echo "⏳ Waiting for server..."
+            sleep 1
+          done
           kill $SERVER_PID
+          echo "❌ Server failed to respond in time."
+          exit 1
