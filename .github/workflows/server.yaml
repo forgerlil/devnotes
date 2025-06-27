@@ -1,9 +1,11 @@
 name: Server
 
 on:
-  push:
+  pull_request:
     branches:
       - main
+    paths:
+      - 'server/**'
 
 jobs:
   build:
@@ -26,4 +28,4 @@ jobs:
         run: npm run build
 
       - name: Run server
-        run: npm run start
+        run: npm start
