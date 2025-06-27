@@ -1,9 +1,11 @@
 name: Client
 
 on:
-  push:
+  pull_request:
     branches:
       - main
+    paths:
+      - 'client/**'
 
 jobs:
   build:
@@ -27,3 +29,6 @@ jobs:
 
       - name: Build client
         run: npm run build
+
+      - name: Run client
+        run: npm run preview
