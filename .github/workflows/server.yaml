@@ -8,7 +8,6 @@ on:
       - 'server/**'
 
 env:
-  PORT: 8000
   MONGO_URI: ${{ secrets.MONGODB_URI }}
   REDIS_URI: ${{ secrets.REDIS_URI }}
   JWT_SECRET: 'dummyvalueforworkflow'
@@ -41,7 +40,7 @@ jobs:
           npm start &
           SERVER_PID=$!
           for i in {1..10}; do
-            if curl http://localhost:${process.env.PORT}/api/ping; then
+            if curl http://localhost:8000/api/ping; then
               echo "✅ Server is serving."
               exit 0
             fi
