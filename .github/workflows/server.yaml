@@ -9,7 +9,7 @@ on:
 
 env:
   PORT: 8000
-  MONGODB_URI: ${{ secrets.MONGODB_URI }}
+  MONGO_URI: ${{ secrets.MONGODB_URI }}
   REDIS_URI: ${{ secrets.REDIS_URI }}
   JWT_SECRET: 'dummyvalueforworkflow'
 
