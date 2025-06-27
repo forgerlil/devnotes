@@ -30,5 +30,10 @@ jobs:
       - name: Build server
         run: npm run build
 
-      - name: Run server
-        run: npm start
+      - name: Start server
+        run: |
+          PORT=8000 npm start &
+          SERVER_PID=$!
+          sleep 5
+          curl -f http://localhost:8000/api/ping || exit 1
+          kill $SERVER_PID

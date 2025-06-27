@@ -34,4 +34,15 @@ jobs:
         run: npm run build
 
       - name: Run client
-        run: npm run preview
+        run: |
+          PORT=3000 npm run preview &
+          SERVER_PID=$!
+          for i in {1..10}; do
+            if curl -fs http://localhost:3000/; then
+            echo "✅ Frontend is serving."
+            break
+          fi
+          echo "⏳ Waiting for frontend..."
+          sleep 1
+          done
+          kill $SERVER_PID
