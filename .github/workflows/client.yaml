@@ -39,7 +39,7 @@ jobs:
           SERVER_PID=$!
 
           for i in {1..10}; do
-            if curl http://localhost:4173/; then
+            if curl -fs http://localhost:4173/; then
               echo "✅ Frontend is serving."
               exit 0
             fi
