@@ -8,7 +8,7 @@
     "dev": "dotenv -e .env.local -- nodemon",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit",
-    "build": "npm run lint && npm run type-check && esbuild src/index.ts --bundle --minify --platform=node --external:* --outfile=dist/index.cjs"
+    "build": "npm run lint && npm run type-check && esbuild src/index.ts --bundle --minify --platform=node --external:./node_modules/* --outfile=dist/index.cjs"
   },
   "keywords": [],
   "author": "",
