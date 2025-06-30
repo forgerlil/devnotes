@@ -18,3 +18,12 @@ export interface RegisterValidation extends LoginValidation {
     dirty: boolean
   }
 }
+
+export interface AuthResponse {
+  message?: string
+}
+
+export interface User {
+  _id: string
+  email: string
+}
