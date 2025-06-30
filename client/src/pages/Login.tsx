@@ -5,10 +5,7 @@ import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
 import axios from 'axios'
 import { validate } from '@/utils/validate'
 import { toastError, toastSuccess } from '@/lib/toastify'
-
-interface LoginResponse {
-  message?: string
-}
+import { AuthResponse } from '@/types/userValidation.types'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -42,12 +39,12 @@ const Login = () => {
     }
 
     try {
-      const { data }: { data: LoginResponse } = await axios.post('/api/auth/login', formData)
+      const { data }: { data: AuthResponse } = await axios.post('/api/auth/login', formData)
       // TODO: remove next line
       toastSuccess(data.message || 'Login successful')
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const { message } = error.response?.data as LoginResponse
+        const { message } = error.response?.data as AuthResponse
         toastError(message || 'Login unsuccessful, please try again')
       } else {
         toastError('Login unsuccessful, please try again')

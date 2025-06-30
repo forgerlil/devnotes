@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
+import axios from 'axios'
 import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
 import { validate } from '@/utils/validate'
 import { RegisterValidation } from '@/types/userValidation.types'
 import { toastError, toastSuccess } from '@/lib/toastify'
-import axios from 'axios'
-
-interface RegisterResponse {
-  message?: string
-}
+import { AuthResponse } from '@/types/userValidation.types'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -158,12 +155,12 @@ const Register = () => {
     }
 
     try {
-      const { data }: { data: RegisterResponse } = await axios.post('/api/auth/signup', formData)
+      const { data }: { data: AuthResponse } = await axios.post('/api/auth/signup', formData)
       // TODO: remove next line
       toastSuccess(data.message || 'Registration successful')
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const { message } = error.response?.data as RegisterResponse
+        const { message } = error.response?.data as AuthResponse
         toastError(message || 'Registration unsuccessful, please try again')
       } else {
         toastError('Registration unsuccessful, please try again')
