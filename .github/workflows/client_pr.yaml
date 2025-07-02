@@ -30,6 +30,9 @@ jobs:
       - name: Lint client
         run: npm run lint
 
+      - name: Test client
+        run: npm run test
+
       - name: Build client
         run: npm run build
 
