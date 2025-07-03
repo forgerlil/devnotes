@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "dotenv -e .env.local -- nodemon",
+    "dev": "dotenv -e .env.local nodemon",
     "lint": "eslint src --ext .ts",
+    "test": "vitest",
     "type-check": "tsc --noEmit",
-    "build": "npm run lint && npm run type-check && esbuild src/index.ts --bundle --minify --platform=node --format=esm --external:./node_modules/* --outfile=dist/index.js"
+    "build": "npm run type-check && esbuild src/index.ts --bundle --minify --platform=node --format=esm --external:./node_modules/* --outfile=dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +35,7 @@
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.14.0",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "dotenv-cli": "^8.0.0",
     "esbuild": "0.25.5",
@@ -41,8 +43,11 @@
     "globals": "^16.2.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.3",
+    "supertest": "^7.1.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.34.0"
+    "typescript-eslint": "^8.34.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }
