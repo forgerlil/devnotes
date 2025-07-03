@@ -6,19 +6,11 @@ export type User = {
   password: string
 }
 
-export interface BaseTokenPayload extends JwtPayload {
+export interface TokenPayload extends JwtPayload {
+  jti: string
   sub: string
   sessionId: string
   type: 'access' | 'refresh'
-}
-
-export interface AccessTokenPayload extends BaseTokenPayload {
-  type: 'access'
-}
-
-export interface RefreshTokenPayload extends BaseTokenPayload {
-  type: 'refresh'
-  jti: string
 }
 
 // TODO: remove this type once migration to redis is complete
