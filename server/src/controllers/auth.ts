@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
+import { nanoid } from 'nanoid'
 import { getCollection } from '@/db/mongo.js'
 import ErrorHandler from '@/utils/errorHandler.js'
 import { User } from '@/types/auth.types.js'
-import { addToHistory, createSession, findUserSession } from '@/utils/auth/redis.js'
+import { addToHistory, createSession, findUserSession, deleteSession } from '@/utils/auth/redis.js'
 import { hash } from '@/utils/hash.js'
 import { generateTokens } from '@/utils/auth/tokens.js'
 
@@ -30,18 +31,24 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
     let newUser
     let accessToken
     let refreshToken
+    const sessionId = nanoid()
+
     try {
       newUser = await collection.insertOne({ email, password: hashedPassword })
 
-      const { accessToken: AT, refreshToken: RT } = await createSession(
-        newUser.insertedId.toString(),
+      const tokenPair = generateTokens(newUser.insertedId.toString(), sessionId)
+      await createSession({
+        userId: newUser.insertedId.toString(),
         deviceInfo,
-      )
+        tokenPair,
+        sessionId,
+      })
 
-      accessToken = AT
-      refreshToken = RT
+      accessToken = tokenPair.accessToken
+      refreshToken = tokenPair.refreshToken
     } catch (error) {
       if (newUser) await collection.deleteOne({ _id: newUser.insertedId })
+      await deleteSession(sessionId)
       throw error
     }
 
@@ -83,18 +90,18 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
     // see if user has session for this device but sent no credentials (ie. cookie cleanup)
     const findSessionByDevice = await findUserSession(user._id.toString(), deviceInfo)
-    let accessToken: string
-    let refreshToken: string
+    const sessionId = findSessionByDevice?.id ?? nanoid()
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), sessionId)
 
     if (!findSessionByDevice) {
-      const tokens = await createSession(user._id.toString(), deviceInfo)
-      accessToken = tokens.accessToken
-      refreshToken = tokens.refreshToken
+      await createSession({
+        userId: user._id.toString(),
+        deviceInfo,
+        tokenPair: { accessToken, refreshToken },
+        sessionId,
+      })
     } else {
-      const tokens = generateTokens(user._id.toString(), findSessionByDevice.id)
-      accessToken = tokens[0]
-      refreshToken = tokens[1]
-      await addToHistory(findSessionByDevice.id, accessToken, refreshToken)
+      await addToHistory(sessionId, accessToken, refreshToken)
     }
 
     res.set('Authorization', `Bearer ${accessToken}`)

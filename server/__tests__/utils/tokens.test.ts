@@ -8,9 +8,9 @@ const { JWT_SECRET } = process.env
 
 describe('generateTokens', () => {
   it('should generate access and refresh tokens', () => {
-    const tokens = generateTokens(mockUserId, mockSessionId)
-    expect(tokens).toHaveLength(2)
-    expect(tokens[0]).toBeDefined()
+    const { accessToken, refreshToken } = generateTokens(mockUserId, mockSessionId)
+    expect(accessToken).toBeDefined()
+    expect(refreshToken).toBeDefined()
   })
 
   it('should throw an error with an invalid userId', () => {
@@ -18,17 +18,17 @@ describe('generateTokens', () => {
   })
 
   it('should generate different tokens for different sessions', () => {
-    const tokens = generateTokens(mockUserId, mockSessionId)
-    const tokens2 = generateTokens(mockUserId, mockSessionId)
+    const { accessToken: aT1, refreshToken: rT1 } = generateTokens(mockUserId, mockSessionId)
+    const { accessToken: aT2, refreshToken: rT2 } = generateTokens(mockUserId, mockSessionId)
 
-    expect(tokens[0]).not.toBe(tokens2[0])
-    expect(tokens[1]).not.toBe(tokens2[1])
+    expect(aT1).not.toBe(aT2)
+    expect(rT1).not.toBe(rT2)
   })
 
   it('should have correct payload', () => {
-    const tokens = generateTokens(mockUserId, mockSessionId)
-    const verifiedAccessToken = jwt.verify(tokens[0], JWT_SECRET!) as TokenPayload
-    const verifiedRefreshToken = jwt.verify(tokens[1], JWT_SECRET!) as TokenPayload
+    const { accessToken, refreshToken } = generateTokens(mockUserId, mockSessionId)
+    const verifiedAccessToken = jwt.verify(accessToken, JWT_SECRET!) as TokenPayload
+    const verifiedRefreshToken = jwt.verify(refreshToken, JWT_SECRET!) as TokenPayload
 
     expect(verifiedAccessToken.sub).toBe(mockUserId)
     expect(verifiedAccessToken.sessionId).toBe(mockSessionId)
@@ -39,13 +39,13 @@ describe('generateTokens', () => {
   })
 
   it('should generate tokens with custom expiresIn', () => {
-    const tokens = generateTokens(mockUserId, mockSessionId, '1h', '1d')
-    const verifiedAccessToken = jwt.verify(tokens[0], JWT_SECRET!) as TokenPayload
+    const { accessToken, refreshToken } = generateTokens(mockUserId, mockSessionId, '1h', '1d')
+    const verifiedAccessToken = jwt.verify(accessToken, JWT_SECRET!) as TokenPayload
 
     expect(verifiedAccessToken.exp).toBeDefined()
     expect(verifiedAccessToken.exp).toBeLessThanOrEqual(Math.floor(Date.now() / 1000 + 3600))
 
-    const verifiedRefreshToken = jwt.verify(tokens[1], process.env.JWT_SECRET!) as TokenPayload
+    const verifiedRefreshToken = jwt.verify(refreshToken, process.env.JWT_SECRET!) as TokenPayload
     expect(verifiedRefreshToken.exp).toBeDefined()
     expect(verifiedRefreshToken.exp).toBeLessThanOrEqual(Math.floor(Date.now() / 1000 + 86400))
   })
@@ -53,9 +53,9 @@ describe('generateTokens', () => {
 
 describe('verifyToken', () => {
   it('should verify a token', () => {
-    const tokens = generateTokens(mockUserId, mockSessionId)
-    const verifiedAccessToken = verifyToken(tokens[0], 'access')
-    const verifiedRefreshToken = verifyToken(tokens[1], 'refresh')
+    const { accessToken, refreshToken } = generateTokens(mockUserId, mockSessionId)
+    const verifiedAccessToken = verifyToken(accessToken, 'access')
+    const verifiedRefreshToken = verifyToken(refreshToken, 'refresh')
 
     expect(verifiedAccessToken).toBeDefined()
     expect(verifiedRefreshToken).toBeDefined()
@@ -66,9 +66,9 @@ describe('verifyToken', () => {
   })
 
   it('should throw an error with an invalid token type', () => {
-    const tokens = generateTokens(mockUserId, mockSessionId)
+    const { accessToken, refreshToken } = generateTokens(mockUserId, mockSessionId)
 
-    expect(() => verifyToken(tokens[0], 'refresh')).toThrow()
-    expect(() => verifyToken(tokens[1], 'access')).toThrow()
+    expect(() => verifyToken(accessToken, 'refresh')).toThrow()
+    expect(() => verifyToken(refreshToken, 'access')).toThrow()
   })
 })

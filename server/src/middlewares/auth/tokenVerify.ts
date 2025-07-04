@@ -40,7 +40,10 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
     if (tokenPair.refreshToken.status === 'revoked') await autoReuseDetection(sessionId)
 
     // Generate new tokens and add them to session history
-    const [newAccessToken, newRefreshToken] = generateTokens(userId, sessionId)
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = generateTokens(
+      userId,
+      sessionId,
+    )
     await addToHistory(sessionId, newAccessToken, newRefreshToken)
 
     res.cookie('refresh_token', newRefreshToken, {

@@ -27,6 +27,7 @@ export type TokenHistory = {
 
 export type SessionData = Omit<Session, 'tokenHistory' | 'expiresAt'> & {
   tokenPair: { accessToken: string; refreshToken: string }
+  sessionId?: string
 }
 
 export type Session = {

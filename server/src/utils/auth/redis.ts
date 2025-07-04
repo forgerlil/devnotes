@@ -7,9 +7,8 @@ import ErrorHandler from '../errorHandler.js'
 const sessionExpiryTime = 7 * 24 * 60 * 60 // 7 days
 const sessionExpiryDate = new Date(Date.now() + sessionExpiryTime * 1000) // 7 days from now in seconds
 
-export const createSession = async ({ userId, deviceInfo, tokenPair }: SessionData) => {
-  const sessionId = nanoid()
-  const sessionKey = `session:${sessionId}`
+export const createSession = async ({ userId, deviceInfo, tokenPair, sessionId }: SessionData) => {
+  const sessionKey = `session:${sessionId ?? nanoid()}`
 
   const newSession: Session = {
     userId,
@@ -38,6 +37,11 @@ export const getSession = async (sessionId: string) => {
   const sessionKey = sessionId.startsWith('session:') ? sessionId : `session:${sessionId}`
   const session = await redis.json.get(sessionKey)
   return session ? (session as Session) : null
+}
+
+export const deleteSession = async (sessionId: string) => {
+  const sessionKey = sessionId.startsWith('session:') ? sessionId : `session:${sessionId}`
+  return await redis.del(sessionKey)
 }
 
 export const findToken = (session: Session, tokenHash: string) => {

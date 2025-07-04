@@ -39,7 +39,7 @@ export const generateTokens = (
     configs.jwtSecret!,
     { expiresIn: refreshExpiresIn },
   )
-  return [accessToken, refreshToken]
+  return { accessToken, refreshToken }
 }
 
 export const verifyToken = (token: string, type: 'access' | 'refresh'): TokenPayload => {
