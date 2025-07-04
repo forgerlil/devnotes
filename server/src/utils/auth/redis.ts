@@ -1,29 +1,27 @@
 import { nanoid } from 'nanoid'
-import { generateTokens } from '@/utils/auth/tokens.js'
 import { hash } from '@/utils/hash.js'
 import redis from '@/db/redis.js'
-import { Session, TokenHistory, RedisSearchResult } from '@/types/auth.types.js'
+import { Session, TokenHistory, RedisSearchResult, SessionData } from '@/types/auth.types.js'
 import ErrorHandler from '../errorHandler.js'
 
 const sessionExpiryTime = 7 * 24 * 60 * 60 // 7 days
 const sessionExpiryDate = new Date(Date.now() + sessionExpiryTime * 1000) // 7 days from now in seconds
 
-export const createSession = async (userId: string, deviceInfo: string) => {
+export const createSession = async ({ userId, deviceInfo, tokenPair }: SessionData) => {
   const sessionId = nanoid()
   const sessionKey = `session:${sessionId}`
-  const [accessToken, refreshToken] = generateTokens(userId, sessionId)
 
-  const sessionData: Session = {
+  const newSession: Session = {
     userId,
     deviceInfo,
     tokenHistory: [
       {
         accessToken: {
-          value: hash(accessToken),
+          value: hash(tokenPair.accessToken),
           status: 'valid',
         },
         refreshToken: {
-          value: hash(refreshToken),
+          value: hash(tokenPair.refreshToken),
           status: 'valid',
         },
         createdAt: new Date(),
@@ -32,10 +30,8 @@ export const createSession = async (userId: string, deviceInfo: string) => {
     expiresAt: sessionExpiryDate,
   }
 
-  await redis.json.set(sessionKey, '$', sessionData)
+  await redis.json.set(sessionKey, '$', newSession)
   await redis.expire(sessionKey, sessionExpiryTime)
-
-  return { accessToken, refreshToken }
 }
 
 export const getSession = async (sessionId: string) => {

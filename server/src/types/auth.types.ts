@@ -25,6 +25,10 @@ export type TokenHistory = {
   createdAt: Date
 }
 
+export type SessionData = Omit<Session, 'tokenHistory' | 'expiresAt'> & {
+  tokenPair: { accessToken: string; refreshToken: string }
+}
+
 export type Session = {
   userId: string
   deviceInfo: string
