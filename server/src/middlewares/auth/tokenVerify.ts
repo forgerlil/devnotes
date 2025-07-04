@@ -17,8 +17,10 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
 
   if (accessToken) {
     try {
-      const decodedAccess = verifyToken(accessToken, 'access')
-      req.decoded = { userId: decodedAccess.sub, sessionId: decodedAccess.sessionId }
+      const { sub: userId, sessionId } = verifyToken(accessToken, 'access')
+      if (req.body?.userId && userId !== req.body.userId)
+        throw new ErrorHandler('Invalid authentication', 403)
+      req.decoded = { userId, sessionId }
       return next()
     } catch (error) {
       console.log('Access token expired')
@@ -33,6 +35,9 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
     // Find token and verify status
     const session = await getSession(sessionId)
     if (!session) throw new ErrorHandler('Authentication not found', 401)
+
+    if (req.body?.userId && userId !== req.body.userId)
+      throw new ErrorHandler('Invalid authentication', 403)
 
     const tokenPair = findTokenPair(session, hash(refreshToken), 'refresh')
     if (!tokenPair) throw new ErrorHandler('Authentication not found', 401)
