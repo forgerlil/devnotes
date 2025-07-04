@@ -91,21 +91,21 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     // see if user has session for this device but sent no credentials (ie. cookie cleanup)
     const findSessionByDevice = await findUserSession(user._id.toString(), deviceInfo)
     const sessionId = findSessionByDevice?.id ?? nanoid()
-    const { accessToken, refreshToken } = generateTokens(user._id.toString(), sessionId)
+    const tokenPair = generateTokens(user._id.toString(), sessionId)
 
     if (!findSessionByDevice) {
       await createSession({
         userId: user._id.toString(),
         deviceInfo,
-        tokenPair: { accessToken, refreshToken },
+        tokenPair,
         sessionId,
       })
     } else {
-      await addToHistory(sessionId, accessToken, refreshToken)
+      await addToHistory(sessionId, tokenPair)
     }
 
-    res.set('Authorization', `Bearer ${accessToken}`)
-    res.cookie('refresh_token', refreshToken, {
+    res.set('Authorization', `Bearer ${tokenPair.accessToken}`)
+    res.cookie('refresh_token', tokenPair.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000,

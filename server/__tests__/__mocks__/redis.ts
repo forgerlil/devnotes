@@ -1,4 +1,6 @@
-export const mockSingleSession = {
+import { Session } from '@/types/auth.types.js'
+
+export const mockSingleSession: Session & { sessionId: string } = {
   sessionId: 'session:woqwC9-c_Bug3jdvgjMYC',
   userId: '685bf98dac1d2721a96620a0',
   deviceInfo: '19b6c0e2b745ac1ff2ef72d8710df6c889e5e4e913b824352c2b101998a6f6bf',
@@ -12,7 +14,7 @@ export const mockSingleSession = {
         value: '3aa57917c472378692b325c9cc812d1ffa6e55bef5107b820d548d31956dcefc',
         status: 'valid',
       },
-      createdAt: '2025-07-04T10:03:46.091Z',
+      createdAt: new Date('2025-07-04T10:03:46.091Z'),
     },
     {
       accessToken: {
@@ -23,7 +25,7 @@ export const mockSingleSession = {
         value: '03b4cd4ef98d72555d7ebf2ffa9d5726f0d9498bc955c65397b888e53583ec8c',
         status: 'revoked',
       },
-      createdAt: '2025-07-04T10:03:44.259Z',
+      createdAt: new Date('2025-07-04T10:03:44.259Z'),
     },
     {
       accessToken: {
@@ -34,13 +36,13 @@ export const mockSingleSession = {
         value: '7a2c1dd791801a46439f2b503a79d91b0bab5b9bc57c5269e56d02d2ec1bb977',
         status: 'revoked',
       },
-      createdAt: '2025-07-04T10:02:23.150Z',
+      createdAt: new Date('2025-07-04T10:02:23.150Z'),
     },
   ],
-  expiresAt: '2025-07-11T09:57:09.177Z',
+  expiresAt: new Date('2025-07-11T09:57:09.177Z'),
 }
 
-export const mockMultipleSessions = [
+export const mockMultipleSessions: (Session & { sessionId: string })[] = [
   mockSingleSession,
   {
     sessionId: 'session:fDeRcCkK-v1xGYCzkDapC',
@@ -56,7 +58,7 @@ export const mockMultipleSessions = [
           value: '28a465ffd0925d8cbb69ecf49d27cdc2a6258e0ac9c93767305d72fa334696d7',
           status: 'valid',
         },
-        createdAt: '2025-07-04T10:04:35.395Z',
+        createdAt: new Date('2025-07-04T10:04:35.395Z'),
       },
       {
         accessToken: {
@@ -67,10 +69,10 @@ export const mockMultipleSessions = [
           value: '34cb478989631bd1c094e3e38f0f2fe793a693a9ba98e835405f965bb8a776a6',
           status: 'revoked',
         },
-        createdAt: '2025-07-04T10:04:13.636Z',
+        createdAt: new Date('2025-07-04T10:04:13.636Z'),
       },
     ],
-    expiresAt: '2025-07-11T09:57:09.177Z',
+    expiresAt: new Date('2025-07-11T09:57:09.177Z'),
   },
   {
     sessionId: 'session:VdNSlIxKLukrBmpxXnHZ9',
@@ -86,27 +88,9 @@ export const mockMultipleSessions = [
           value: '42b94b47a9c302ba0886f9b3128beb66623f5c5f4f2826fcba62f9e7ebcc5c83',
           status: 'valid',
         },
-        createdAt: '2025-07-04T10:10:02.339Z',
+        createdAt: new Date('2025-07-04T10:10:02.339Z'),
       },
     ],
-    expiresAt: '2025-07-11T09:57:09.177Z',
+    expiresAt: new Date('2025-07-11T09:57:09.177Z'),
   },
 ]
-
-const jsonSetMock = vi.fn()
-const jsonGetMock = vi.fn()
-const expireMock = vi.fn()
-const searchMock = vi.fn()
-
-const redisMock = {
-  json: {
-    set: jsonSetMock,
-    get: jsonGetMock,
-  },
-  expire: expireMock,
-  ft: {
-    search: searchMock,
-  },
-}
-
-export default redisMock
