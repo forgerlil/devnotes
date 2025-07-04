@@ -1,54 +1,65 @@
 import { nanoid } from 'nanoid'
-import { generateTokens } from '@/utils/auth/tokens.js'
+import { ObjectId } from 'mongodb'
 import { hash } from '@/utils/hash.js'
 import redis from '@/db/redis.js'
-import { Session, TokenHistory, RedisSearchResult } from '@/types/auth.types.js'
+import { Session, TokenHistory, RedisSearchResult, SessionData } from '@/types/auth.types.js'
 import ErrorHandler from '../errorHandler.js'
 
 const sessionExpiryTime = 7 * 24 * 60 * 60 // 7 days
-const sessionExpiryDate = new Date(Date.now() + sessionExpiryTime * 1000) // 7 days from now in seconds
+const getSessionExpiryDate = () => new Date(Date.now() + sessionExpiryTime * 1000)
 
-export const createSession = async (userId: string, deviceInfo: string) => {
-  const sessionId = nanoid()
-  const sessionKey = `session:${sessionId}`
-  const [accessToken, refreshToken] = generateTokens(userId, sessionId)
+export const createSession = async ({ userId, deviceInfo, tokenPair, sessionId }: SessionData) => {
+  const sessionKey = `session:${sessionId ?? nanoid()}`
 
-  const sessionData: Session = {
+  const newSession: Session = {
     userId,
     deviceInfo,
     tokenHistory: [
       {
         accessToken: {
-          value: hash(accessToken),
+          value: hash(tokenPair.accessToken),
           status: 'valid',
         },
         refreshToken: {
-          value: hash(refreshToken),
+          value: hash(tokenPair.refreshToken),
           status: 'valid',
         },
         createdAt: new Date(),
       },
     ],
-    expiresAt: sessionExpiryDate,
+    expiresAt: getSessionExpiryDate(),
   }
 
-  await redis.json.set(sessionKey, '$', sessionData)
+  await redis.json.set(sessionKey, '$', newSession)
   await redis.expire(sessionKey, sessionExpiryTime)
+  return sessionKey
+}
 
-  return { accessToken, refreshToken }
+const formatSessionId = (sessionId: string) => {
+  return `session:${sessionId.split(':').at(-1)}`
 }
 
 export const getSession = async (sessionId: string) => {
-  const sessionKey = sessionId.startsWith('session:') ? sessionId : `session:${sessionId}`
+  const sessionKey = formatSessionId(sessionId)
   const session = await redis.json.get(sessionKey)
   return session ? (session as Session) : null
 }
 
-export const findToken = (session: Session, tokenHash: string) => {
-  return session.tokenHistory.find((token: TokenHistory) => token.refreshToken.value === tokenHash)
+export const deleteSession = async (sessionId: string) => {
+  const sessionKey = formatSessionId(sessionId)
+  return await redis.del(sessionKey)
+}
+
+export const findTokenPair = (session: Session, tokenHash: string, type: 'refresh' | 'access') => {
+  return session.tokenHistory.find((token: TokenHistory) =>
+    type === 'refresh'
+      ? token.refreshToken.value === tokenHash
+      : token.accessToken.value === tokenHash,
+  )
 }
 
 export const findUserSession = async (userId: string, deviceInfo: string) => {
+  if (!ObjectId.isValid(userId)) throw new ErrorHandler('Invalid user ID', 400)
   const { total, documents } = (await redis.ft.search(
     `idx:sessions`,
     `@userId:${userId} @deviceInfo:"${deviceInfo}"`,
@@ -60,15 +71,15 @@ export const findUserSession = async (userId: string, deviceInfo: string) => {
 
 export const addToHistory = async (
   sessionId: string,
-  accessToken: string,
-  refreshToken: string,
+  tokenPair: { accessToken: string; refreshToken: string },
 ) => {
-  const session = await getSession(sessionId)
+  const sessionKey = formatSessionId(sessionId)
+  const session = (await redis.json.get(sessionKey)) as Session
   if (!session) throw new ErrorHandler('Session not found', 404)
 
   const newToken: TokenHistory = {
-    accessToken: { value: hash(accessToken), status: 'valid' },
-    refreshToken: { value: hash(refreshToken), status: 'valid' },
+    accessToken: { value: hash(tokenPair.accessToken), status: 'valid' },
+    refreshToken: { value: hash(tokenPair.refreshToken), status: 'valid' },
     createdAt: new Date(),
   }
 
@@ -78,6 +89,7 @@ export const addToHistory = async (
   const updatedSession: Session = {
     ...session,
     tokenHistory: [newToken, ...session.tokenHistory],
+    expiresAt: getSessionExpiryDate(),
   }
 
   await redis.json.set(`session:${sessionId}`, '$', updatedSession)

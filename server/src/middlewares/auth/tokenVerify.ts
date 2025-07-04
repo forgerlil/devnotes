@@ -1,10 +1,9 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { Session } from '@/types/auth.types.js'
 import { generateTokens, verifyToken } from '@/utils/auth/tokens.js'
 import ErrorHandler from '@/utils/errorHandler.js'
 import { hash } from '@/utils/hash.js'
-import { getSession, addToHistory, findToken } from '@/utils/auth/redis.js'
+import { getSession, addToHistory, findTokenPair } from '@/utils/auth/redis.js'
 import { autoReuseDetection } from '@/utils/auth/autoReuseDetection.js'
 
 const tokenVerify: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -32,23 +31,23 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
     const { sub: userId, sessionId } = decodedRefresh
 
     // Find token and verify status
-    const session = (await getSession(sessionId)) as Session
+    const session = await getSession(sessionId)
     if (!session) throw new ErrorHandler('Authentication not found', 401)
 
-    const tokenPair = findToken(session, hash(refreshToken))
+    const tokenPair = findTokenPair(session, hash(refreshToken), 'refresh')
     if (!tokenPair) throw new ErrorHandler('Authentication not found', 401)
     if (tokenPair.refreshToken.status === 'revoked') await autoReuseDetection(sessionId)
 
     // Generate new tokens and add them to session history
-    const [newAccessToken, newRefreshToken] = generateTokens(userId, sessionId)
-    await addToHistory(sessionId, newAccessToken, newRefreshToken)
+    const newTokens = generateTokens(userId, sessionId)
+    await addToHistory(sessionId, newTokens)
 
-    res.cookie('refresh_token', newRefreshToken, {
+    res.cookie('refresh_token', newTokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-    res.set('Authorization', `Bearer ${newAccessToken}`)
+    res.set('Authorization', `Bearer ${newTokens.accessToken}`)
 
     req.decoded = { userId, sessionId }
 
