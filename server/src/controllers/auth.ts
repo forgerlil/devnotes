@@ -75,16 +75,15 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
     const {
       ip,
-      headers: { 'user-agent': userAgent, 'x-forwarded-for': xForwardedFor },
+      headers: { 'user-agent': userAgent, 'true-client-ip': trueClientIp },
     } = req
     const { email, password } = req.body
     if (!ip || !userAgent || !email || !password)
       throw new ErrorHandler('Insufficient request data', 400)
 
-    console.log(req.headers)
-    console.log(xForwardedFor)
-
-    const deviceInfo = hash(ip + userAgent)
+    const deviceInfo = hash(
+      process.env.NODE_ENV === 'production' ? trueClientIp + userAgent : ip + userAgent,
+    )
     const collection = await getCollection('users')
     const user = await collection.findOne<User>({ email })
     if (!user) throw new ErrorHandler('User not found', 400)
