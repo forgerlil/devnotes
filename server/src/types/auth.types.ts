@@ -22,7 +22,7 @@ export type SessionToken = {
 export type TokenHistory = {
   accessToken: SessionToken
   refreshToken: SessionToken
-  createdAt: Date
+  createdAt: string
 }
 
 export type SessionData = Omit<Session, 'tokenHistory' | 'expiresAt'> & {
@@ -34,7 +34,7 @@ export type Session = {
   userId: string
   deviceInfo: string
   tokenHistory: TokenHistory[]
-  expiresAt: Date
+  expiresAt: string
 }
 
 export type RedisSearchResult = {

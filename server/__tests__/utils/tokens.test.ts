@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { generateTokens, verifyToken } from '@/utils/auth/tokens.js'
+import { generateTokens, verifyToken, decodeToken } from '@/utils/auth/tokens.js'
 import { TokenPayload } from '@/types/auth.types.js'
 
 const mockUserId = '685bf98dac1d2721a96620a0'
@@ -48,6 +48,31 @@ describe('generateTokens', () => {
     const verifiedRefreshToken = jwt.verify(refreshToken, process.env.JWT_SECRET!) as TokenPayload
     expect(verifiedRefreshToken.exp).toBeDefined()
     expect(verifiedRefreshToken.exp).toBeLessThanOrEqual(Math.floor(Date.now() / 1000 + 86400))
+  })
+})
+
+describe('decodeToken', () => {
+  it('should decode a token', () => {
+    const { accessToken, refreshToken } = generateTokens(mockUserId, mockSessionId)
+    const decodedAccessToken = decodeToken(accessToken)
+    const decodedRefreshToken = decodeToken(refreshToken)
+
+    expect(decodedAccessToken).toBeDefined()
+    expect(decodedRefreshToken).toBeDefined()
+  })
+
+  it('should throw an error with an invalid token', () => {
+    expect(() => decodeToken('invalid')).toThrow()
+  })
+
+  it('should throw an error with an invalid token format', () => {
+    const invalidToken = jwt.sign(
+      { jti: '123456', message: 'This is not a valid token', type: 'invalid' },
+      JWT_SECRET!,
+      { expiresIn: '30s' },
+    )
+
+    expect(() => decodeToken(invalidToken)).toThrow()
   })
 })
 

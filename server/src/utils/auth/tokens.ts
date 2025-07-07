@@ -42,6 +42,12 @@ export const generateTokens = (
   return { accessToken, refreshToken }
 }
 
+export const decodeToken = (token: string): TokenPayload => {
+  const decoded = jwt.decode(token)
+  if (!decoded || !isTokenPayload(decoded)) throw new ErrorHandler('Invalid token format', 401)
+  return decoded
+}
+
 export const verifyToken = (token: string, type: 'access' | 'refresh'): TokenPayload => {
   const decoded = jwt.verify(token, configs.jwtSecret!)
 
