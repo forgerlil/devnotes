@@ -296,7 +296,6 @@ describe('revokeAllTokens', () => {
 
   it('should throw an error if session is not found', async () => {
     const revokeMalformedSession = async () => await revokeAllTokens('invalid-session-id')
-    console.log(mockSingleSession)
     await expect(revokeMalformedSession()).rejects.toThrow('Session not found')
   })
 })

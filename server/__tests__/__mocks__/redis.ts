@@ -14,7 +14,7 @@ export const mockSingleSession: Session & { sessionId: string } = {
         value: '3aa57917c472378692b325c9cc812d1ffa6e55bef5107b820d548d31956dcefc',
         status: 'valid',
       },
-      createdAt: new Date('2025-07-04T10:03:46.091Z'),
+      createdAt: '2025-07-04T10:03:46.091Z',
     },
     {
       accessToken: {
@@ -25,7 +25,7 @@ export const mockSingleSession: Session & { sessionId: string } = {
         value: '03b4cd4ef98d72555d7ebf2ffa9d5726f0d9498bc955c65397b888e53583ec8c',
         status: 'revoked',
       },
-      createdAt: new Date('2025-07-04T10:03:44.259Z'),
+      createdAt: '2025-07-04T10:03:44.259Z',
     },
     {
       accessToken: {
@@ -36,8 +36,8 @@ export const mockSingleSession: Session & { sessionId: string } = {
         value: '7a2c1dd791801a46439f2b503a79d91b0bab5b9bc57c5269e56d02d2ec1bb977',
         status: 'revoked',
       },
-      createdAt: new Date('2025-07-04T10:02:23.150Z'),
+      createdAt: '2025-07-04T10:02:23.150Z',
     },
   ],
-  expiresAt: new Date('2025-07-11T09:57:09.177Z'),
+  expiresAt: '2025-07-11T09:57:09.177Z',
 }
