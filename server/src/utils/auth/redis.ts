@@ -69,6 +69,17 @@ export const findUserSession = async (userId: string, deviceInfo: string) => {
   return { id, value: documents[0].value as Session }
 }
 
+export const checkRevokedCredentials = async (
+  sessionId: string,
+  tokenHash: string,
+  type: 'refresh' | 'access',
+) => {
+  const session = await getSession(sessionId)
+  if (!session) throw new ErrorHandler('Session not found', 404)
+  const token = findTokenPair(session, tokenHash, type)
+  return token?.accessToken.status === 'revoked' || token?.refreshToken.status === 'revoked'
+}
+
 export const addToHistory = async (
   sessionId: string,
   tokenPair: { accessToken: string; refreshToken: string },
