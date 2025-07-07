@@ -6,7 +6,7 @@ import { Session, TokenHistory, RedisSearchResult, SessionData } from '@/types/a
 import ErrorHandler from '../errorHandler.js'
 
 const sessionExpiryTime = 7 * 24 * 60 * 60 // 7 days
-const getSessionExpiryDate = () => new Date(Date.now() + sessionExpiryTime * 1000)
+const getSessionExpiryDate = () => new Date(Date.now() + sessionExpiryTime * 1000).toISOString()
 
 export const createSession = async ({ userId, deviceInfo, tokenPair, sessionId }: SessionData) => {
   const sessionKey = `session:${sessionId ?? nanoid()}`
@@ -24,7 +24,7 @@ export const createSession = async ({ userId, deviceInfo, tokenPair, sessionId }
           value: hash(tokenPair.refreshToken),
           status: 'valid',
         },
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       },
     ],
     expiresAt: getSessionExpiryDate(),
@@ -69,6 +69,18 @@ export const findUserSession = async (userId: string, deviceInfo: string) => {
   return { id, value: documents[0].value as Session }
 }
 
+export const checkRevokedCredentials = async (
+  sessionId: string,
+  tokenHash: string,
+  type: 'refresh' | 'access',
+) => {
+  const session = await getSession(sessionId)
+  if (!session) throw new ErrorHandler('Session not found', 404)
+  const token = findTokenPair(session, tokenHash, type)
+  if (!token) throw new ErrorHandler('Token not in session', 404)
+  return token?.accessToken.status === 'revoked' || token?.refreshToken.status === 'revoked'
+}
+
 export const addToHistory = async (
   sessionId: string,
   tokenPair: { accessToken: string; refreshToken: string },
@@ -80,7 +92,7 @@ export const addToHistory = async (
   const newToken: TokenHistory = {
     accessToken: { value: hash(tokenPair.accessToken), status: 'valid' },
     refreshToken: { value: hash(tokenPair.refreshToken), status: 'valid' },
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   }
 
   session.tokenHistory[0].refreshToken.status = 'revoked'
