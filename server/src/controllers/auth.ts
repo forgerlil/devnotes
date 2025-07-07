@@ -75,11 +75,14 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
     const {
       ip,
-      headers: { 'user-agent': userAgent },
+      headers: { 'user-agent': userAgent, 'x-forwarded-for': xForwardedFor },
     } = req
     const { email, password } = req.body
     if (!ip || !userAgent || !email || !password)
       throw new ErrorHandler('Insufficient request data', 400)
+
+    console.log(req.headers)
+    console.log(xForwardedFor)
 
     const deviceInfo = hash(ip + userAgent)
     const collection = await getCollection('users')
