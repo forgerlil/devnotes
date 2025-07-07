@@ -1,3 +1,4 @@
+import { MockedFunction } from 'vitest'
 import { nanoid } from 'nanoid'
 import { ObjectId } from 'mongodb'
 import { hash } from '@/utils/hash.js'
@@ -8,6 +9,7 @@ import {
   deleteSession,
   findTokenPair,
   findUserSession,
+  checkRevokedCredentials,
   addToHistory,
   revokeAllTokens,
 } from '@/utils/auth/redis.js'
@@ -29,8 +31,16 @@ vi.mock('@/db/redis.js', () => ({
   },
 }))
 
+const { mockJsonGet, mockJsonSet, mockExpire, mockDel, mockFtSearch } = {
+  mockJsonGet: redis.json.get as MockedFunction<typeof redis.json.get>,
+  mockJsonSet: redis.json.set as MockedFunction<typeof redis.json.set>,
+  mockExpire: redis.expire as MockedFunction<typeof redis.expire>,
+  mockDel: redis.del as MockedFunction<typeof redis.del>,
+  mockFtSearch: redis.ft.search as MockedFunction<typeof redis.ft.search>,
+}
+
 afterEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
 })
 
 describe('createSession', () => {
@@ -52,10 +62,10 @@ describe('createSession', () => {
         {
           accessToken: { value: hash(tokenPair.accessToken), status: 'valid' },
           refreshToken: { value: hash(tokenPair.refreshToken), status: 'valid' },
-          createdAt: expect.any(Date),
+          createdAt: expect.any(String),
         },
       ],
-      expiresAt: expect.any(Date),
+      expiresAt: expect.any(String),
     })
     expect(redis.expire).toHaveBeenCalledExactlyOnceWith(`session:${sessionId}`, 604800)
   })
@@ -70,10 +80,10 @@ describe('createSession', () => {
         {
           accessToken: { value: hash(tokenPair.accessToken), status: 'valid' },
           refreshToken: { value: hash(tokenPair.refreshToken), status: 'valid' },
-          createdAt: expect.any(Date),
+          createdAt: expect.any(String),
         },
       ],
-      expiresAt: expect.any(Date),
+      expiresAt: expect.any(String),
     })
     expect(redis.expire).toHaveBeenCalledExactlyOnceWith(sessionId, 604800)
   })
@@ -81,7 +91,7 @@ describe('createSession', () => {
 
 describe('getSession', () => {
   it('should find an existing session', async () => {
-    ;(redis.json.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
 
     await getSession(mockSingleSession.sessionId)
 
@@ -89,7 +99,7 @@ describe('getSession', () => {
   })
 
   it('should return null if session does not exist', async () => {
-    ;(redis.json.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
+    mockJsonGet.mockResolvedValueOnce(null)
 
     const session = await getSession('V1StGXR8_Z5jdHi6B-myT')
 
@@ -136,7 +146,7 @@ describe('findToken', () => {
 describe('findUserSession', () => {
   it('should return object with id and value of session', async () => {
     const rawSessionId = mockSingleSession.sessionId.split(':')[1]
-    ;(redis.ft.search as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    mockFtSearch.mockResolvedValueOnce({
       total: 1,
       documents: [{ id: mockSingleSession.sessionId, value: mockSingleSession }],
     })
@@ -146,7 +156,7 @@ describe('findUserSession', () => {
   })
 
   it('should return null if no documents are found', async () => {
-    ;(redis.ft.search as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    mockFtSearch.mockResolvedValueOnce({
       total: 0,
       documents: [],
     })
@@ -161,11 +171,69 @@ describe('findUserSession', () => {
   })
 })
 
+describe('checkRevokedCredentials', () => {
+  const { sessionId, tokenHistory } = mockSingleSession
+
+  it('should return true if token has been revoked', async () => {
+    mockJsonGet.mockResolvedValue(mockSingleSession)
+
+    const result1 = await checkRevokedCredentials(
+      sessionId,
+      tokenHistory[1].accessToken.value,
+      'access',
+    )
+    const result2 = await checkRevokedCredentials(
+      sessionId,
+      tokenHistory[1].refreshToken.value,
+      'refresh',
+    )
+    const result3 = await checkRevokedCredentials(
+      sessionId,
+      tokenHistory[2].accessToken.value,
+      'access',
+    )
+
+    expect(result1).toBe(true)
+    expect(result2).toBe(true)
+    expect(result3).toBe(true)
+  })
+
+  it('should return false if credentials are not revoked', async () => {
+    mockJsonGet.mockResolvedValue(mockSingleSession)
+
+    const result1 = await checkRevokedCredentials(
+      sessionId,
+      tokenHistory[0].accessToken.value,
+      'access',
+    )
+    const result2 = await checkRevokedCredentials(
+      sessionId,
+      tokenHistory[0].refreshToken.value,
+      'refresh',
+    )
+
+    expect(result1).toBe(false)
+    expect(result2).toBe(false)
+  })
+
+  it('should throw an error if token is not found in session history', async () => {
+    mockJsonGet.mockResolvedValue(mockSingleSession)
+
+    const checkRevokedMalformedToken1 = async () =>
+      await checkRevokedCredentials(sessionId, 'invalid-token', 'access')
+    const checkRevokedMalformedToken2 = async () =>
+      await checkRevokedCredentials(sessionId, tokenHistory[2].accessToken.value, 'refresh')
+
+    await expect(checkRevokedMalformedToken1()).rejects.toThrow('Token not in session')
+    await expect(checkRevokedMalformedToken2()).rejects.toThrow('Token not in session')
+  })
+})
+
 describe('addToHistory', () => {
   const { userId, sessionId } = mockSingleSession
 
   it('should add a token as the first item in the session history and update session expiresAt', async () => {
-    ;(redis.json.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
     const tokenPair = generateTokens(userId, sessionId)
 
     const result = await addToHistory(sessionId, tokenPair)
@@ -173,13 +241,13 @@ describe('addToHistory', () => {
     expect(result.tokenHistory[0]).toEqual({
       accessToken: { value: hash(tokenPair.accessToken), status: 'valid' },
       refreshToken: { value: hash(tokenPair.refreshToken), status: 'valid' },
-      createdAt: expect.any(Date),
+      createdAt: expect.any(String),
     })
     expect(result.expiresAt).not.toEqual(mockSingleSession.expiresAt)
   })
 
   it('should revoke the previous token pair', async () => {
-    ;(redis.json.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
     const tokenPair = generateTokens(userId, sessionId)
 
     const result = await addToHistory(sessionId, tokenPair)
@@ -192,7 +260,7 @@ describe('addToHistory', () => {
   })
 
   it('should forward the same updated session to redis and update key TTL', async () => {
-    ;(redis.json.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
     const tokenPair = generateTokens(userId, sessionId)
 
     const result = await addToHistory(sessionId, tokenPair)
@@ -212,7 +280,7 @@ describe('revokeAllTokens', () => {
   const { sessionId } = mockSingleSession
 
   it('should revoke all tokens for a session and forward the updated session to redis', async () => {
-    ;(redis.json.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
 
     await revokeAllTokens(sessionId)
 
@@ -228,6 +296,7 @@ describe('revokeAllTokens', () => {
 
   it('should throw an error if session is not found', async () => {
     const revokeMalformedSession = async () => await revokeAllTokens('invalid-session-id')
+    console.log(mockSingleSession)
     await expect(revokeMalformedSession()).rejects.toThrow('Session not found')
   })
 })
