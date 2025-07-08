@@ -8,8 +8,8 @@ import {
   addToHistory,
   findTokenPair,
   checkRevokedCredentials,
+  revokeAllTokens,
 } from '@/utils/auth/redis.js'
-import { autoReuseDetection } from '@/utils/auth/autoReuseDetection.js'
 
 const tokenVerify: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]
@@ -34,7 +34,7 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
       const { sessionId } = decodeToken(accessToken)
       const isRevoked = await checkRevokedCredentials(sessionId, hash(accessToken), 'access')
       if (isRevoked) {
-        await autoReuseDetection(sessionId)
+        await revokeAllTokens(sessionId)
         if (req.cookies.refresh_token) res.clearCookie('refresh_token')
         return next(new ErrorHandler('Invalid authentication', 403))
       }
@@ -55,7 +55,7 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
     const tokenPair = findTokenPair(session, hash(refreshToken), 'refresh')
     if (!tokenPair) throw new ErrorHandler('Authentication not found', 401)
     if (tokenPair.refreshToken.status === 'revoked') {
-      await autoReuseDetection(sessionId)
+      await revokeAllTokens(sessionId)
       return next(new ErrorHandler('Invalid authentication', 403))
     }
 
