@@ -7,6 +7,14 @@ describe('Error Handler middleware', () => {
   let res = {} as Response
   const next: NextFunction = vi.fn()
 
+  beforeAll(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+  })
+
+  afterAll(() => {
+    vi.restoreAllMocks()
+  })
+
   beforeEach(() => {
     res = {
       status: vi.fn().mockReturnThis(),
