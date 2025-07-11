@@ -10,6 +10,17 @@ import ErrorHandler from '../errorHandler.js'
 const isTokenPayload = (decoded: JwtPayload | string): decoded is TokenPayload => {
   if (typeof decoded === 'string') return false
 
+  // Get keys from TokenPayload type, plus standard JWT claims
+  const expectedKeys = ['jti', 'sub', 'sessionId', 'type'] as const
+  const jwtClaims = ['iat', 'exp'] as const
+  const actualKeys = Object.keys(decoded)
+
+  // Check if payload has exactly the expected keys
+  const validKeys = [...expectedKeys, ...jwtClaims]
+  if (actualKeys.length !== validKeys.length) return false
+  if (!actualKeys.every((key) => validKeys.includes(key as (typeof validKeys)[number])))
+    return false
+
   return (
     typeof decoded.jti === 'string' &&
     typeof decoded.sub === 'string' &&

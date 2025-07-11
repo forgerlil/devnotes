@@ -13,7 +13,7 @@ import {
   addToHistory,
   revokeAllTokens,
 } from '@/utils/auth/redis.js'
-import { mockSingleSession } from '../__mocks__/redis.js'
+import { mockSingleSessionWithId } from '../__mocks__/redis.js'
 import redis from '@/db/redis.js'
 import { TokenHistory } from '@/types/auth.types.js'
 
@@ -91,11 +91,11 @@ describe('createSession', () => {
 
 describe('getSession', () => {
   it('should find an existing session', async () => {
-    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSessionWithId)
 
-    await getSession(mockSingleSession.sessionId)
+    await getSession(mockSingleSessionWithId.sessionId)
 
-    expect(redis.json.get).toHaveBeenCalledExactlyOnceWith(mockSingleSession.sessionId)
+    expect(redis.json.get).toHaveBeenCalledExactlyOnceWith(mockSingleSessionWithId.sessionId)
   })
 
   it('should return null if session does not exist', async () => {
@@ -126,11 +126,11 @@ describe('deleteSession', () => {
 
 describe('findToken', () => {
   it('should find an existing token in provided session object', () => {
-    const token1 = mockSingleSession.tokenHistory[2].accessToken.value
-    const token2 = mockSingleSession.tokenHistory[1].refreshToken.value
+    const token1 = mockSingleSessionWithId.tokenHistory[2].accessToken.value
+    const token2 = mockSingleSessionWithId.tokenHistory[1].refreshToken.value
 
-    const result1 = findTokenPair(mockSingleSession, token1, 'access')
-    const result2 = findTokenPair(mockSingleSession, token2, 'refresh')
+    const result1 = findTokenPair(mockSingleSessionWithId, token1, 'access')
+    const result2 = findTokenPair(mockSingleSessionWithId, token2, 'refresh')
 
     expect(result1).toBeDefined()
     expect(result2).toBeDefined()
@@ -138,21 +138,21 @@ describe('findToken', () => {
 
   it('should return undefined if token is not found', () => {
     const token = 'invalid-token'
-    const result = findTokenPair(mockSingleSession, token, 'access')
+    const result = findTokenPair(mockSingleSessionWithId, token, 'access')
     expect(result).toBeUndefined()
   })
 })
 
 describe('findUserSession', () => {
   it('should return object with id and value of session', async () => {
-    const rawSessionId = mockSingleSession.sessionId.split(':')[1]
+    const rawSessionId = mockSingleSessionWithId.sessionId.split(':')[1]
     mockFtSearch.mockResolvedValueOnce({
       total: 1,
-      documents: [{ id: mockSingleSession.sessionId, value: mockSingleSession }],
+      documents: [{ id: mockSingleSessionWithId.sessionId, value: mockSingleSessionWithId }],
     })
 
     const result = await findUserSession('66e17e663bb5c2b01f42eb30', 'device-info')
-    expect(result).toEqual({ id: rawSessionId, value: mockSingleSession })
+    expect(result).toEqual({ id: rawSessionId, value: mockSingleSessionWithId })
   })
 
   it('should return null if no documents are found', async () => {
@@ -172,10 +172,10 @@ describe('findUserSession', () => {
 })
 
 describe('checkRevokedCredentials', () => {
-  const { sessionId, tokenHistory } = mockSingleSession
+  const { sessionId, tokenHistory } = mockSingleSessionWithId
 
   it('should return true if token has been revoked', async () => {
-    mockJsonGet.mockResolvedValue(mockSingleSession)
+    mockJsonGet.mockResolvedValue(mockSingleSessionWithId)
 
     const result1 = await checkRevokedCredentials(
       sessionId,
@@ -199,7 +199,7 @@ describe('checkRevokedCredentials', () => {
   })
 
   it('should return false if credentials are not revoked', async () => {
-    mockJsonGet.mockResolvedValue(mockSingleSession)
+    mockJsonGet.mockResolvedValue(mockSingleSessionWithId)
 
     const result1 = await checkRevokedCredentials(
       sessionId,
@@ -217,7 +217,7 @@ describe('checkRevokedCredentials', () => {
   })
 
   it('should throw an error if token is not found in session history', async () => {
-    mockJsonGet.mockResolvedValue(mockSingleSession)
+    mockJsonGet.mockResolvedValue(mockSingleSessionWithId)
 
     const checkRevokedMalformedToken1 = async () =>
       await checkRevokedCredentials(sessionId, 'invalid-token', 'access')
@@ -230,10 +230,10 @@ describe('checkRevokedCredentials', () => {
 })
 
 describe('addToHistory', () => {
-  const { userId, sessionId } = mockSingleSession
+  const { userId, sessionId } = mockSingleSessionWithId
 
   it('should add a token as the first item in the session history and update session expiresAt', async () => {
-    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSessionWithId)
     const tokenPair = generateTokens(userId, sessionId)
 
     const result = await addToHistory(sessionId, tokenPair)
@@ -243,24 +243,24 @@ describe('addToHistory', () => {
       refreshToken: { value: hash(tokenPair.refreshToken), status: 'valid' },
       createdAt: expect.any(String),
     })
-    expect(result.expiresAt).not.toEqual(mockSingleSession.expiresAt)
+    expect(result.expiresAt).not.toEqual(mockSingleSessionWithId.expiresAt)
   })
 
   it('should revoke the previous token pair', async () => {
-    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSessionWithId)
     const tokenPair = generateTokens(userId, sessionId)
 
     const result = await addToHistory(sessionId, tokenPair)
 
     expect(result.tokenHistory[1]).toEqual({
-      ...mockSingleSession.tokenHistory[0],
-      accessToken: { ...mockSingleSession.tokenHistory[0].accessToken, status: 'revoked' },
-      refreshToken: { ...mockSingleSession.tokenHistory[0].refreshToken, status: 'revoked' },
+      ...mockSingleSessionWithId.tokenHistory[0],
+      accessToken: { ...mockSingleSessionWithId.tokenHistory[0].accessToken, status: 'revoked' },
+      refreshToken: { ...mockSingleSessionWithId.tokenHistory[0].refreshToken, status: 'revoked' },
     })
   })
 
   it('should forward the same updated session to redis and update key TTL', async () => {
-    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSessionWithId)
     const tokenPair = generateTokens(userId, sessionId)
 
     const result = await addToHistory(sessionId, tokenPair)
@@ -277,16 +277,16 @@ describe('addToHistory', () => {
 })
 
 describe('revokeAllTokens', () => {
-  const { sessionId } = mockSingleSession
+  const { sessionId } = mockSingleSessionWithId
 
   it('should revoke all tokens for a session and forward the updated session to redis', async () => {
-    mockJsonGet.mockResolvedValueOnce(mockSingleSession)
+    mockJsonGet.mockResolvedValueOnce(mockSingleSessionWithId)
 
     await revokeAllTokens(sessionId)
 
     expect(redis.json.set).toHaveBeenCalledExactlyOnceWith(`session:${sessionId}`, '$', {
-      ...mockSingleSession,
-      tokenHistory: mockSingleSession.tokenHistory.map((token: TokenHistory) => ({
+      ...mockSingleSessionWithId,
+      tokenHistory: mockSingleSessionWithId.tokenHistory.map((token: TokenHistory) => ({
         ...token,
         accessToken: { ...token.accessToken, status: 'revoked' },
         refreshToken: { ...token.refreshToken, status: 'revoked' },

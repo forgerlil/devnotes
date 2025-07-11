@@ -15,23 +15,41 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
   const accessToken = req.headers.authorization?.split(' ')[1]
   const refreshToken = req.cookies.refresh_token
 
-  if (!accessToken && !refreshToken) {
-    console.log('No tokens provided')
-    return next()
-  }
+  if (!accessToken && !refreshToken) return next()
 
   if (accessToken) {
     try {
-      const { sub: userId, sessionId } = verifyToken(accessToken, 'access')
-      if (req.body?.userId && userId !== req.body.userId)
+      // Decode access token first
+      const { jti: accessJti, sub: userId, sessionId } = verifyToken(accessToken, 'access')
+
+      // Check if access token has been previously revoked
+      const isRevoked = await checkRevokedCredentials(sessionId, hash(accessToken), 'access')
+      if (isRevoked) {
+        await revokeAllTokens(sessionId)
+        if (req.cookies.refresh_token) res.clearCookie('refresh_token')
         throw new ErrorHandler('Invalid authentication', 403)
+      }
+
+      // Check if refresh and access tokens are the same pair
+      if (refreshToken) {
+        const { jti: refreshJti } = decodeToken(refreshToken)
+        if (accessJti !== refreshJti) throw new ErrorHandler('Mismatched token pair', 403)
+      }
+
       req.decoded = { userId, sessionId }
       return next()
     } catch (error) {
+      // Any non-expired error is passed to next()
       if (!(error instanceof jwt.TokenExpiredError)) return next(error)
 
-      console.log('Access token provided but expired')
-      const { sessionId } = decodeToken(accessToken)
+      // Check validity and match with refresh token
+      const { jti: accessJti, sessionId } = decodeToken(accessToken)
+
+      if (refreshToken) {
+        const { jti: refreshJti } = decodeToken(refreshToken)
+        if (accessJti !== refreshJti) return next(new ErrorHandler('Mismatched token pair', 403))
+      }
+
       const isRevoked = await checkRevokedCredentials(sessionId, hash(accessToken), 'access')
       if (isRevoked) {
         await revokeAllTokens(sessionId)
@@ -42,8 +60,7 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
   }
 
   try {
-    const decodedRefresh = verifyToken(refreshToken, 'refresh')
-    const { sub: userId, sessionId } = decodedRefresh
+    const { sub: userId, sessionId } = verifyToken(refreshToken, 'refresh')
 
     // Find token and verify status
     const session = await getSession(sessionId)
