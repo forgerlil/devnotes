@@ -68,8 +68,9 @@ describe('tokenVerify', () => {
   })
 
   it('should throw if access token is valid but revoked', async () => {
-    const { accessToken } = tokenUtils.generateTokens(userId, sessionId)
+    const { accessToken, refreshToken } = tokenUtils.generateTokens(userId, sessionId)
     req.headers.authorization = `Bearer ${accessToken}`
+    req.cookies.refresh_token = refreshToken
     checkRevokedCredentials.mockResolvedValueOnce(true)
     revokeAllTokens.mockResolvedValueOnce('OK')
 
@@ -77,6 +78,7 @@ describe('tokenVerify', () => {
 
     expect(checkRevokedCredentials).toHaveBeenCalledWith(sessionId, hash(accessToken), 'access')
     expect(revokeAllTokens).toHaveBeenCalledWith(sessionId)
+    expect(res.clearCookie).toHaveBeenCalledWith('refresh_token')
     expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
     expect(next.mock.calls[0][0].message).toBe('Invalid authentication')
     expect(next.mock.calls[0][0].statusCode).toBe(403)
