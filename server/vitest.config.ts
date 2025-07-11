@@ -8,5 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     testTimeout: 10000,
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+    },
   },
 })

@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb'
 import { hash } from '@/utils/hash.js'
 import redis from '@/db/redis.js'
 import { Session, TokenHistory, RedisSearchResult, SessionData } from '@/types/auth.types.js'
-import ErrorHandler from '../errorHandler.js'
+import HTTPError from '../httpError.js'
 
 const sessionExpiryTime = 7 * 24 * 60 * 60 // 7 days
 const getSessionExpiryDate = () => new Date(Date.now() + sessionExpiryTime * 1000).toISOString()
@@ -59,7 +59,7 @@ export const findTokenPair = (session: Session, tokenHash: string, type: 'refres
 }
 
 export const findUserSession = async (userId: string, deviceInfo: string) => {
-  if (!ObjectId.isValid(userId)) throw new ErrorHandler('Invalid user ID', 400)
+  if (!ObjectId.isValid(userId)) throw new HTTPError('Invalid user ID', 400)
   const { total, documents } = (await redis.ft.search(
     `idx:sessions`,
     `@userId:${userId} @deviceInfo:"${deviceInfo}"`,
@@ -75,9 +75,9 @@ export const checkRevokedCredentials = async (
   type: 'refresh' | 'access',
 ) => {
   const session = await getSession(sessionId)
-  if (!session) throw new ErrorHandler('Session not found', 404)
+  if (!session) throw new HTTPError('Session not found', 404)
   const token = findTokenPair(session, tokenHash, type)
-  if (!token) throw new ErrorHandler('Token not in session', 404)
+  if (!token) throw new HTTPError('Token not in session', 404)
   return token?.accessToken.status === 'revoked' || token?.refreshToken.status === 'revoked'
 }
 
@@ -87,7 +87,7 @@ export const addToHistory = async (
 ) => {
   const sessionKey = formatSessionId(sessionId)
   const session = (await redis.json.get(sessionKey)) as Session
-  if (!session) throw new ErrorHandler('Session not found', 404)
+  if (!session) throw new HTTPError('Session not found', 404)
 
   const newToken: TokenHistory = {
     accessToken: { value: hash(tokenPair.accessToken), status: 'valid' },
@@ -111,7 +111,7 @@ export const addToHistory = async (
 
 export const revokeAllTokens = async (sessionId: string) => {
   const session = (await redis.json.get(`session:${sessionId}`)) as Session
-  if (!session) throw new ErrorHandler('Session not found', 404)
+  if (!session) throw new HTTPError('Session not found', 404)
 
   const updatedSession: Session = {
     ...session,

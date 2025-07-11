@@ -1,9 +1,9 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express'
-import ErrorHandler from '@/utils/errorHandler.js'
+import HTTPError from '@/utils/httpError.js'
 
 const requireAuth: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
   if (!req.decoded) {
-    next(new ErrorHandler('Unauthorised', 401))
+    next(new HTTPError('Unauthorised', 401))
   }
   next()
 }

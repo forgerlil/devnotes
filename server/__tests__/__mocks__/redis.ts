@@ -1,7 +1,7 @@
 import { Session } from '@/types/auth.types.js'
+import { hash } from '@/utils/hash.js'
 
-export const mockSingleSession: Session & { sessionId: string } = {
-  sessionId: 'session:woqwC9-c_Bug3jdvgjMYC',
+export const mockSingleSession: Session = {
   userId: '685bf98dac1d2721a96620a0',
   deviceInfo: '19b6c0e2b745ac1ff2ef72d8710df6c889e5e4e913b824352c2b101998a6f6bf',
   tokenHistory: [
@@ -40,4 +40,41 @@ export const mockSingleSession: Session & { sessionId: string } = {
     },
   ],
   expiresAt: '2025-07-11T09:57:09.177Z',
+}
+
+export const mockSingleSessionWithId: Session & { sessionId: string } = {
+  ...mockSingleSession,
+  sessionId: 'session:woqwC9-c_Bug3jdvgjMYC',
+}
+
+export function createMockSessionFromTokens({
+  userId,
+  accessToken,
+  refreshToken,
+  accessStatus = 'valid',
+  refreshStatus = 'valid',
+  createdAt = new Date().toISOString(),
+  additionalHistory = [],
+}: {
+  userId: string
+  accessToken: string
+  refreshToken: string
+  accessStatus?: 'valid' | 'revoked'
+  refreshStatus?: 'valid' | 'revoked'
+  createdAt?: string
+  additionalHistory?: Session['tokenHistory']
+}): Session {
+  return {
+    userId,
+    deviceInfo: '19b6c0e2b745ac1ff2ef72d8710df6c889e5e4e913b824352c2b101998a6f6bf',
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+    tokenHistory: [
+      {
+        accessToken: { value: hash(accessToken), status: accessStatus },
+        refreshToken: { value: hash(refreshToken), status: refreshStatus },
+        createdAt,
+      },
+      ...additionalHistory,
+    ],
+  }
 }
