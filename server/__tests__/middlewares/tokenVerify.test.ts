@@ -5,11 +5,7 @@ import * as redisUtils from '@/utils/auth/redis.js'
 import ErrorHandler from '@/utils/errorHandler.js'
 import { hash } from '@/utils/hash.js'
 import { MockedResponse } from '@/types/tests.types.js'
-import {
-  createMockSessionFromTokens,
-  mockSingleSession,
-  mockSingleSessionWithId,
-} from '../__mocks__/redis.js'
+import { createMockSessionFromTokens, mockSingleSessionWithId } from '../__mocks__/redis.js'
 
 describe('tokenVerify', () => {
   let req: Request
@@ -25,7 +21,7 @@ describe('tokenVerify', () => {
 
   const {
     tokens: { decodeToken, generateTokens, verifyToken },
-    redis: { addToHistory, checkRevokedCredentials, findTokenPair, getSession, revokeAllTokens },
+    redis: { addToHistory, checkRevokedCredentials, getSession, revokeAllTokens },
   } = {
     tokens: {
       decodeToken: vi.spyOn(tokenUtils, 'decodeToken'),
@@ -35,7 +31,6 @@ describe('tokenVerify', () => {
     redis: {
       addToHistory: vi.spyOn(redisUtils, 'addToHistory'),
       checkRevokedCredentials: vi.spyOn(redisUtils, 'checkRevokedCredentials'),
-      findTokenPair: vi.spyOn(redisUtils, 'findTokenPair'),
       getSession: vi.spyOn(redisUtils, 'getSession'),
       revokeAllTokens: vi.spyOn(redisUtils, 'revokeAllTokens'),
     },
@@ -116,10 +111,7 @@ describe('tokenVerify', () => {
 
   it("should throw if expired access token doesn't match refresh token jti", async () => {
     const { accessToken: accessToken1 } = tokenUtils.generateTokens(userId, sessionId, '1ms')
-    const { accessToken: _, refreshToken: refreshToken2 } = tokenUtils.generateTokens(
-      userId,
-      sessionId,
-    )
+    const { refreshToken: refreshToken2 } = tokenUtils.generateTokens(userId, sessionId)
 
     req.headers.authorization = `Bearer ${accessToken1}`
     req.cookies.refresh_token = refreshToken2
@@ -133,18 +125,17 @@ describe('tokenVerify', () => {
     expect(req.decoded).not.toBeDefined()
   })
 
-  it('should throw if an expired access token has already been revoked', async () => {
+  it('should throw if access token is expired and no refresh token is provided', async () => {
     const { accessToken } = tokenUtils.generateTokens(userId, sessionId, '1ms')
     req.headers.authorization = `Bearer ${accessToken}`
-    checkRevokedCredentials.mockResolvedValueOnce(true)
-    revokeAllTokens.mockResolvedValueOnce('OK')
+    checkRevokedCredentials.mockResolvedValueOnce(false)
 
     await tokenVerify(req, res, next)
 
-    expect(checkRevokedCredentials).toHaveBeenCalledWith(sessionId, hash(accessToken), 'access')
     expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
-    expect(next.mock.calls[0][0].message).toBe('Invalid authentication')
-    expect(next.mock.calls[0][0].statusCode).toBe(403)
+    expect(next.mock.calls[0][0].message).toBe('Insufficient authentication')
+    expect(next.mock.calls[0][0].statusCode).toBe(401)
+    expect(req.decoded).not.toBeDefined()
   })
 
   it('should continue with refresh token validation if access token is valid but expired', async () => {
@@ -163,7 +154,7 @@ describe('tokenVerify', () => {
     expect(next).toHaveBeenCalled()
   })
 
-  it('should successfully verify a valid refresh token', async () => {
+  it('should successfully verify a valid refresh token and add new tokens to response', async () => {
     const { accessToken: originalAccessToken, refreshToken: originalRefreshToken } =
       tokenUtils.generateTokens(userId, sessionId, '1ms')
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
@@ -194,5 +185,20 @@ describe('tokenVerify', () => {
     expect(res.set).toHaveBeenCalledWith('Authorization', `Bearer ${newAccessToken}`)
     expect(req.decoded).toEqual({ userId, sessionId })
     expect(next).toHaveBeenCalled()
+  })
+
+  it('should throw if refresh token has been revoked', async () => {
+    const { refreshToken } = tokenUtils.generateTokens(userId, sessionId)
+    req.cookies.refresh_token = refreshToken
+    checkRevokedCredentials.mockResolvedValueOnce(true)
+    revokeAllTokens.mockResolvedValueOnce('OK')
+
+    await tokenVerify(req, res, next)
+
+    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next.mock.calls[0][0].message).toBe('Invalid authentication')
+    expect(next.mock.calls[0][0].statusCode).toBe(403)
+    expect(res.clearCookie).toHaveBeenCalledWith('refresh_token')
+    expect(req.decoded).not.toBeDefined()
   })
 })
