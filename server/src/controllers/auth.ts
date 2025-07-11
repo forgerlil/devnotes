@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import { nanoid } from 'nanoid'
 import { getCollection } from '@/db/mongo.js'
-import ErrorHandler from '@/utils/errorHandler.js'
+import HTTPError from '@/utils/httpError.js'
 import { User } from '@/types/auth.types.js'
 import { addToHistory, createSession, findUserSession, deleteSession } from '@/utils/auth/redis.js'
 import { hash } from '@/utils/hash.js'
@@ -17,13 +17,13 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body
 
     if (!ip || !userAgent || !email || !password)
-      throw new ErrorHandler('Insufficient request data', 400)
+      throw new HTTPError('Insufficient request data', 400)
 
     const deviceInfo = hash(ip + userAgent)
     const collection = await getCollection('users')
     const user = await collection.findOne<User>({ email })
 
-    if (user) throw new ErrorHandler('User already exists', 400)
+    if (user) throw new HTTPError('User already exists', 400)
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -79,16 +79,16 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     } = req
     const { email, password } = req.body
     if (!ip || !userAgent || !email || !password)
-      throw new ErrorHandler('Insufficient request data', 400)
+      throw new HTTPError('Insufficient request data', 400)
 
     const deviceInfo = hash(
       process.env.NODE_ENV === 'production' ? trueClientIp + userAgent : ip + userAgent,
     )
     const collection = await getCollection('users')
     const user = await collection.findOne<User>({ email })
-    if (!user) throw new ErrorHandler('User not found', 400)
+    if (!user) throw new HTTPError('User not found', 400)
     const isPasswordValid = await bcrypt.compare(password, user.password)
-    if (!isPasswordValid) throw new ErrorHandler('Invalid password', 400)
+    if (!isPasswordValid) throw new HTTPError('Invalid password', 400)
 
     // see if user has session for this device but sent no credentials (ie. cookie cleanup)
     const findSessionByDevice = await findUserSession(user._id.toString(), deviceInfo)

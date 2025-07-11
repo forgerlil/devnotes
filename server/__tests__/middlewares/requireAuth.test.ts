@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import requireAuth from '@/middlewares/auth/requireAuth.js'
-import ErrorHandler from '@/utils/errorHandler.js'
+import HTTPError from '@/utils/httpError.js'
 
 describe('requireAuth', () => {
   const req = {} as Request
@@ -10,7 +10,7 @@ describe('requireAuth', () => {
   it('should throw if no decoded property is present', async () => {
     await requireAuth(req, res, next)
 
-    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
     expect(next.mock.calls[0][0].message).toBe('Unauthorised')
     expect(next.mock.calls[0][0].statusCode).toBe(401)
     expect(req.decoded).not.toBeDefined()

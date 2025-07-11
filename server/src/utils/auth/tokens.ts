@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import type { StringValue } from 'ms'
 import configs from '@/configs/index.js'
 import { TokenPayload } from '@/types/auth.types.js'
-import ErrorHandler from '../errorHandler.js'
+import HTTPError from '../httpError.js'
 
 // Type guard to validate TokenPayload
 const isTokenPayload = (decoded: JwtPayload | string): decoded is TokenPayload => {
@@ -37,7 +37,7 @@ export const generateTokens = (
   accessExpiresIn: StringValue = '15m',
   refreshExpiresIn: StringValue = '7d',
 ) => {
-  if (!ObjectId.isValid(userId)) throw new ErrorHandler('Invalid user id', 401)
+  if (!ObjectId.isValid(userId)) throw new HTTPError('Invalid user id', 401)
   const tokenPairId = nanoid()
 
   const accessToken = jwt.sign(
@@ -55,15 +55,15 @@ export const generateTokens = (
 
 export const decodeToken = (token: string): TokenPayload => {
   const decoded = jwt.decode(token)
-  if (!decoded || !isTokenPayload(decoded)) throw new ErrorHandler('Invalid token format', 401)
+  if (!decoded || !isTokenPayload(decoded)) throw new HTTPError('Invalid token format', 401)
   return decoded
 }
 
 export const verifyToken = (token: string, type: 'access' | 'refresh'): TokenPayload => {
   const decoded = jwt.verify(token, configs.jwtSecret!)
 
-  if (!isTokenPayload(decoded)) throw new ErrorHandler('Invalid token format', 401)
-  if (type !== decoded.type) throw new ErrorHandler('Invalid token type', 401)
+  if (!isTokenPayload(decoded)) throw new HTTPError('Invalid token format', 401)
+  if (type !== decoded.type) throw new HTTPError('Invalid token type', 401)
 
   return decoded
 }

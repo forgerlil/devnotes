@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
-import ErrorHandler from '@/utils/errorHandler.js'
+import HTTPError from '@/utils/httpError.js'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   console.log(err.message)
   console.log(err.stack)
-  if (err instanceof ErrorHandler) {
+  if (err instanceof HTTPError) {
     res.status(err.statusCode).json({ message: err.message })
     return
   }

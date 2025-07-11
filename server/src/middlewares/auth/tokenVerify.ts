@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { decodeToken, generateTokens, verifyToken } from '@/utils/auth/tokens.js'
-import ErrorHandler from '@/utils/errorHandler.js'
+import HTTPError from '@/utils/httpError.js'
 import { hash } from '@/utils/hash.js'
 import { addToHistory, checkRevokedCredentials, revokeAllTokens } from '@/utils/auth/redis.js'
 
@@ -21,13 +21,13 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
       if (isRevoked) {
         await revokeAllTokens(sessionId)
         if (req.cookies.refresh_token) res.clearCookie('refresh_token')
-        throw new ErrorHandler('Invalid authentication', 403)
+        throw new HTTPError('Invalid authentication', 403)
       }
 
       // Check if refresh and access tokens are the same pair
       if (refreshToken) {
         const { jti: refreshJti } = decodeToken(refreshToken)
-        if (accessJti !== refreshJti) throw new ErrorHandler('Mismatched token pair', 403)
+        if (accessJti !== refreshJti) throw new HTTPError('Mismatched token pair', 403)
       }
 
       req.decoded = { userId, sessionId }
@@ -40,9 +40,9 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
       if (refreshToken) {
         const { jti: accessJti } = decodeToken(accessToken)
         const { jti: refreshJti } = decodeToken(refreshToken)
-        if (accessJti !== refreshJti) return next(new ErrorHandler('Mismatched token pair', 403))
+        if (accessJti !== refreshJti) return next(new HTTPError('Mismatched token pair', 403))
       } else {
-        return next(new ErrorHandler('Insufficient authentication', 401))
+        return next(new HTTPError('Insufficient authentication', 401))
       }
     }
   }
@@ -53,7 +53,7 @@ const tokenVerify: RequestHandler = async (req: Request, res: Response, next: Ne
     const isRevoked = await checkRevokedCredentials(sessionId, hash(refreshToken), 'refresh')
     if (isRevoked) {
       await revokeAllTokens(sessionId)
-      throw new ErrorHandler('Invalid authentication', 403)
+      throw new HTTPError('Invalid authentication', 403)
     }
 
     // Generate new tokens and add them to session history

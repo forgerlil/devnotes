@@ -2,7 +2,7 @@ import { Request } from 'express'
 import tokenVerify from '@/middlewares/auth/tokenVerify.js'
 import * as tokenUtils from '@/utils/auth/tokens.js'
 import * as redisUtils from '@/utils/auth/redis.js'
-import ErrorHandler from '@/utils/errorHandler.js'
+import HTTPError from '@/utils/httpError.js'
 import { hash } from '@/utils/hash.js'
 import { MockedResponse } from '@/types/tests.types.js'
 import { createMockSessionFromTokens, mockSingleSessionWithId } from '../__mocks__/redis.js'
@@ -63,7 +63,7 @@ describe('tokenVerify', () => {
 
     expect(next).toHaveBeenCalledWith()
     expect(req.decoded).toEqual({ userId, sessionId })
-    expect(next).not.toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).not.toHaveBeenCalledWith(expect.any(HTTPError))
     expect(res.clearCookie).not.toHaveBeenCalled()
   })
 
@@ -79,7 +79,7 @@ describe('tokenVerify', () => {
     expect(checkRevokedCredentials).toHaveBeenCalledWith(sessionId, hash(accessToken), 'access')
     expect(revokeAllTokens).toHaveBeenCalledWith(sessionId)
     expect(res.clearCookie).toHaveBeenCalledWith('refresh_token')
-    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
     expect(next.mock.calls[0][0].message).toBe('Invalid authentication')
     expect(next.mock.calls[0][0].statusCode).toBe(403)
     expect(req.decoded).not.toBeDefined()
@@ -95,7 +95,7 @@ describe('tokenVerify', () => {
 
     await tokenVerify(req, res, next)
 
-    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
     expect(next.mock.calls[0][0].message).toBe('Mismatched token pair')
     expect(next.mock.calls[0][0].statusCode).toBe(403)
     expect(req.decoded).not.toBeDefined()
@@ -121,7 +121,7 @@ describe('tokenVerify', () => {
 
     await tokenVerify(req, res, next)
 
-    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
     expect(next.mock.calls[0][0].message).toBe('Mismatched token pair')
     expect(next.mock.calls[0][0].statusCode).toBe(403)
     expect(req.decoded).not.toBeDefined()
@@ -134,7 +134,7 @@ describe('tokenVerify', () => {
 
     await tokenVerify(req, res, next)
 
-    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
     expect(next.mock.calls[0][0].message).toBe('Insufficient authentication')
     expect(next.mock.calls[0][0].statusCode).toBe(401)
     expect(req.decoded).not.toBeDefined()
@@ -197,7 +197,7 @@ describe('tokenVerify', () => {
 
     await tokenVerify(req, res, next)
 
-    expect(next).toHaveBeenCalledWith(expect.any(ErrorHandler))
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
     expect(next.mock.calls[0][0].message).toBe('Invalid authentication')
     expect(next.mock.calls[0][0].statusCode).toBe(403)
     expect(res.clearCookie).toHaveBeenCalledWith('refresh_token')
