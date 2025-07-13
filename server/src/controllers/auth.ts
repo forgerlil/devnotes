@@ -12,16 +12,18 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
       ip,
-      headers: { 'user-agent': userAgent },
+      headers: { 'user-agent': userAgent, 'true-client-ip': trueClientIp },
     } = req
     const { email, password } = req.body
 
-    if (!ip || !userAgent || !email || !password)
+    if ((!ip && !trueClientIp) || !userAgent || !email || !password)
       throw new HTTPError('Insufficient request data', 400)
 
-    const deviceInfo = hash(ip + userAgent)
+    const deviceInfo = hash(
+      process.env.NODE_ENV === 'production' ? trueClientIp + userAgent : ip + userAgent,
+    )
     const collection = await getCollection('users')
-    const user = await collection.findOne<User>({ email })
+    const user = await collection.findOne<User>({ email }, { projection: { password: 0 } })
 
     if (user) throw new HTTPError('User already exists', 400)
 
@@ -29,6 +31,7 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
 
     // Handle session & user creation, ensure both are successful
     let newUser
+    let newSession
     let accessToken
     let refreshToken
     const sessionId = nanoid()
@@ -37,7 +40,7 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
       newUser = await collection.insertOne({ email, password: hashedPassword })
 
       const tokenPair = generateTokens(newUser.insertedId.toString(), sessionId)
-      await createSession({
+      newSession = await createSession({
         userId: newUser.insertedId.toString(),
         deviceInfo,
         tokenPair,
@@ -48,7 +51,7 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
       refreshToken = tokenPair.refreshToken
     } catch (error) {
       if (newUser) await collection.deleteOne({ _id: newUser.insertedId })
-      await deleteSession(sessionId)
+      if (newSession) await deleteSession(sessionId)
       throw error
     }
 
@@ -61,7 +64,7 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
 
     res.status(201).end()
   } catch (error) {
-    res.clearCookie('refresh_token')
+    if (req.cookies.refresh_token) res.clearCookie('refresh_token')
     next(error)
   }
 }
@@ -78,7 +81,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       headers: { 'user-agent': userAgent, 'true-client-ip': trueClientIp },
     } = req
     const { email, password } = req.body
-    if (!ip || !userAgent || !email || !password)
+    if ((!ip && !trueClientIp) || !userAgent || !email || !password)
       throw new HTTPError('Insufficient request data', 400)
 
     const deviceInfo = hash(
@@ -115,7 +118,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
     res.status(200).end()
   } catch (error) {
-    res.clearCookie('refresh_token')
+    if (req.cookies.refresh_token) res.clearCookie('refresh_token')
     next(error)
   }
 }

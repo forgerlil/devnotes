@@ -31,11 +31,9 @@ vi.mock('@/db/redis.js', () => ({
   },
 }))
 
-const { mockJsonGet, mockJsonSet, mockExpire, mockDel, mockFtSearch } = {
+const { mockJsonGet, mockJsonSet, mockFtSearch } = {
   mockJsonGet: redis.json.get as MockedFunction<typeof redis.json.get>,
   mockJsonSet: redis.json.set as MockedFunction<typeof redis.json.set>,
-  mockExpire: redis.expire as MockedFunction<typeof redis.expire>,
-  mockDel: redis.del as MockedFunction<typeof redis.del>,
   mockFtSearch: redis.ft.search as MockedFunction<typeof redis.ft.search>,
 }
 
@@ -53,6 +51,7 @@ describe('createSession', () => {
   const tokenPair = generateTokens(userId, sessionId)
 
   it('should send correct session data to redis', async () => {
+    mockJsonSet.mockResolvedValueOnce('OK')
     await createSession({ userId, deviceInfo, tokenPair, sessionId })
 
     expect(redis.json.set).toHaveBeenCalledExactlyOnceWith(`session:${sessionId}`, '$', {
@@ -71,6 +70,7 @@ describe('createSession', () => {
   })
 
   it('should generate an id if none is provided', async () => {
+    mockJsonSet.mockResolvedValueOnce('OK')
     const sessionId = await createSession({ userId, deviceInfo, tokenPair })
 
     expect(redis.json.set).toHaveBeenCalledExactlyOnceWith(sessionId, '$', {

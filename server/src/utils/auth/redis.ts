@@ -30,8 +30,9 @@ export const createSession = async ({ userId, deviceInfo, tokenPair, sessionId }
     expiresAt: getSessionExpiryDate(),
   }
 
-  await redis.json.set(sessionKey, '$', newSession)
+  const result = await redis.json.set(sessionKey, '$', newSession)
   await redis.expire(sessionKey, sessionExpiryTime)
+  if (!result) throw new HTTPError('Failed to create session', 500)
   return sessionKey
 }
 
