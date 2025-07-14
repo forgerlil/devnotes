@@ -71,11 +71,6 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (req.decoded) {
-      res.sendStatus(200)
-      return
-    }
-
     const {
       ip,
       headers: { 'user-agent': userAgent, 'true-client-ip': trueClientIp },
@@ -123,4 +118,15 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-export { signUp, login }
+const logout = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sessionId } = req.decoded!
+    await deleteSession(sessionId)
+    res.clearCookie('refresh_token')
+    res.sendStatus(204)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export { signUp, login, logout }

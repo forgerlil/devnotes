@@ -2,9 +2,10 @@ import request from 'supertest'
 import { ObjectId } from 'mongodb'
 import { Application } from 'express'
 import { IncomingHttpHeaders } from 'http'
-import * as redisUtils from '@/utils/auth/redis.js'
 import HTTPError from '@/utils/httpError.js'
 import { hash } from '@/utils/hash.js'
+import { createMockSessionFromTokens } from '__tests__/__mocks__/redis.js'
+import { generateTokens } from '@/utils/auth/tokens.js'
 
 const findOneMock = vi.fn()
 const insertOneMock = vi.fn()
@@ -12,12 +13,13 @@ const deleteOneMock = vi.fn()
 const createSessionMock = vi.fn()
 const findUserSessionMock = vi.fn()
 const addToHistoryMock = vi.fn()
+const checkRevokedCredentialsMock = vi.fn()
+const deleteSessionMock = vi.fn()
+
 let app: Application
 
-const deleteSession = vi.spyOn(redisUtils, 'deleteSession')
-
 beforeEach(async () => {
-  vi.spyOn(console, 'log').mockImplementation(() => {})
+  //vi.spyOn(console, 'log').mockImplementation(() => {})
 
   vi.doMock('@/db/mongo.js', () => ({
     getCollection: vi.fn().mockResolvedValue({
@@ -31,6 +33,8 @@ beforeEach(async () => {
     createSession: createSessionMock,
     findUserSession: findUserSessionMock,
     addToHistory: addToHistoryMock,
+    checkRevokedCredentials: checkRevokedCredentialsMock,
+    deleteSession: deleteSessionMock,
   }))
 
   const appModule = await import('@/index.js')
@@ -143,7 +147,7 @@ describe('POST /api/auth/signup', async () => {
 
     expect(res.status).toBe(500)
     expect(deleteOneMock).toHaveBeenCalledOnce()
-    expect(deleteSession).not.toHaveBeenCalled()
+    expect(deleteSessionMock).not.toHaveBeenCalled()
     expect(res.headers['authorization']).toBeUndefined()
     expect(res.headers['set-cookie']).toBeUndefined()
   })
@@ -153,7 +157,6 @@ describe('POST /api/auth/login', async () => {
   let headers: IncomingHttpHeaders
 
   beforeEach(() => {
-    //vi.spyOn(console, 'log').mockImplementation(() => {})
     headers = {
       ip: '123.45.67.89',
       'user-agent': 'test-user-agent',
@@ -232,5 +235,42 @@ describe('POST /api/auth/login', async () => {
     expect(res.headers['authorization']).toBeUndefined()
     expect(res.headers['set-cookie']).toBeUndefined()
     expect(findOneMock).toHaveBeenCalledOnce()
+  })
+})
+
+describe('POST /api/auth/logout', async () => {
+  let headers: IncomingHttpHeaders
+  const userId = '68505a07509f48ac99f58b71'
+  const sessionId = '68505a07509f48ac99f58b71'
+
+  beforeEach(() => {
+    headers = {
+      ip: '123.45.67.89',
+      'user-agent': 'test-user-agent',
+      'content-type': 'application/json',
+    }
+  })
+
+  it('should return 401 if no token is provided', async () => {
+    const res = await request(app).post('/api/auth/logout')
+    expect(res.status).toBe(401)
+  })
+
+  // WIP - mock redis deleteSession & session object
+  it('should return 204 if a valid token is provided', async () => {
+    const { accessToken, refreshToken } = generateTokens(userId, sessionId)
+    const session = createMockSessionFromTokens({ userId, accessToken, refreshToken })
+    headers.authorization = `Bearer ${accessToken}`
+    headers.cookie = `refresh_token=${refreshToken}`
+
+    checkRevokedCredentialsMock.mockResolvedValueOnce(false)
+    findUserSessionMock.mockResolvedValueOnce(session)
+    deleteSessionMock.mockResolvedValueOnce(1)
+
+    const res = await request(app).post('/api/auth/logout').set(headers)
+
+    expect(deleteSessionMock).toHaveBeenCalledOnce()
+    expect(res.headers['set-cookie'][0]).toContain('refresh_token')
+    expect(res.status).toBe(204)
   })
 })
