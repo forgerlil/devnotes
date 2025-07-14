@@ -7,6 +7,7 @@ import { validate } from '@/utils/validate'
 import { RegisterValidation } from '@/types/userValidation.types'
 import { toastError, toastSuccess } from '@/lib/toastify'
 import { AuthResponse } from '@/types/userValidation.types'
+import { Link } from 'react-router'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -296,9 +297,9 @@ const Register = () => {
           </form>
           <p className='text-center text-sm text-base-content font-thin'>
             Already have an account?{' '}
-            <a className='link link-primary link-hover font-bold' href='/login'>
+            <Link to='/login' className='link link-primary link-hover font-bold'>
               Login
-            </a>
+            </Link>
           </p>
         </div>
       </div>
