@@ -10,28 +10,28 @@ vi.mock('@/lib/toastify', () => ({
   toastSuccess: vi.fn(),
 }))
 
+const loginRoute = {
+  path: '/login',
+  Component: Login,
+  action: () => {},
+}
+
+const registerRoute = {
+  path: '/register',
+  Component: Register,
+  action: () => {},
+}
+
+const notesRoute = {
+  path: '/notes/:id',
+  Component: NoteDashboard,
+  action: () => {},
+}
+
 describe('<Login />', () => {
-  const loginRoute = {
-    path: '/login',
-    Component: Login,
-    action: () => {},
-  }
-
-  const registerRoute = {
-    path: '/register',
-    Component: Register,
-    action: () => {},
-  }
-
-  const notesRoute = {
-    path: '/notes/:id',
-    Component: NoteDashboard,
-    action: () => {},
-  }
-
   afterEach(() => {
     loginRoute.action = () => {}
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it('should render the Login page', () => {
