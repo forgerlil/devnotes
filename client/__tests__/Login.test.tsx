@@ -23,7 +23,7 @@ describe('<Login />', () => {
       },
     ])
 
-    render(<Stub initialEntries={['/login']} />)
+    render(<Stub key={crypto.randomUUID()} initialEntries={['/login']} />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Login' })).toBeInTheDocument()
   })
@@ -40,7 +40,7 @@ describe('<Login />', () => {
       },
     ])
 
-    render(<Stub initialEntries={['/login']} />)
+    render(<Stub key={crypto.randomUUID()} initialEntries={['/login']} />)
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
 
     expect(toastError).toHaveBeenCalledWith('Email and password are required')
@@ -59,7 +59,7 @@ describe('<Login />', () => {
       },
     ])
 
-    render(<Stub initialEntries={['/login']} />)
+    render(<Stub key={crypto.randomUUID()} initialEntries={['/login']} />)
     await userEvent.type(screen.getByPlaceholderText('Email'), 'test@test.com')
     await userEvent.type(screen.getByPlaceholderText('Password'), 'password')
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
@@ -87,7 +87,7 @@ describe('<Login />', () => {
       },
     ])
 
-    render(<Stub initialEntries={['/login']} />)
+    render(<Stub key={crypto.randomUUID()} initialEntries={['/login']} />)
     await userEvent.type(screen.getByPlaceholderText('Email'), 'test@test.com')
     await userEvent.type(screen.getByPlaceholderText('Password'), 'Password123!')
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
@@ -111,7 +111,7 @@ describe('<Login />', () => {
       },
     ])
 
-    render(<Stub initialEntries={['/login']} />)
+    render(<Stub key={crypto.randomUUID()} initialEntries={['/login']} />)
     await userEvent.click(screen.getByRole('link', { name: 'Register' }))
 
     expect(await screen.findByRole('heading', { name: 'Register' })).toBeInTheDocument()
