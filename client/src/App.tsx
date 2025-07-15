@@ -1,11 +1,15 @@
-import Register from './pages/Register'
-import Login from './pages/Login'
+import { Link } from 'react-router'
 
-function App() {
+const App = () => {
   return (
     <div className=''>
-      <Login />
-      {/* <Register /> */}
+      <h1>DevNotes, keep all your coding notes in one place!</h1>
+      <Link to='/login' className='btn btn-primary'>
+        Login
+      </Link>
+      <Link to='/register' className='btn btn-primary'>
+        Register
+      </Link>
     </div>
   )
 }

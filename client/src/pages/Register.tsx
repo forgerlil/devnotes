@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
 import { validate } from '@/utils/validate'
-import { RegisterValidation } from '@/types/userValidation.types'
+import { RegisterValidation, LoginResponse } from '@/types/auth.types'
 import { toastError, toastSuccess } from '@/lib/toastify'
-import { AuthResponse } from '@/types/userValidation.types'
+import { Link, Form, useActionData, useNavigate } from 'react-router'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +15,9 @@ const Register = () => {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const actionData = useActionData<LoginResponse>()
+  const navigate = useNavigate()
+
   const [validation, setValidation] = useState<RegisterValidation>({
     email: {
       valid: true,
@@ -40,24 +42,25 @@ const Register = () => {
     },
   })
 
-  const [error, setError] = useState('')
-
   useEffect(() => {
-    if (error) {
-      toastError(error)
-      setError('')
+    if (actionData) {
+      if (actionData.error) toastError(actionData.error)
+      else {
+        toastSuccess(actionData.data?.message || 'Welcome!')
+        void navigate('/notes/1')
+      }
     }
-  }, [error])
+  }, [actionData, navigate])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
 
     // Handle password validation on change for updating message styles
     if (name === 'password') {
-      const hasNums = validate('containsNumbers', value, formData)
-      const hasLowercase = validate('containsLowercaseLetters', value, formData)
-      const hasUppercase = validate('containsUppercaseLetters', value, formData)
-      const hasSpecial = validate('containsSpecialCharacters', value, formData)
+      const hasNums = validate('containsNumbers', value)
+      const hasLowercase = validate('containsLowercaseLetters', value)
+      const hasUppercase = validate('containsUppercaseLetters', value)
+      const hasSpecial = validate('containsSpecialCharacters', value)
       const hasLength = value.length >= 8
 
       setValidation((prev) => ({
@@ -93,10 +96,10 @@ const Register = () => {
 
     // Verify password validity on blur
     if (name === 'password') {
-      const hasNums = validate('containsNumbers', value, formData)
-      const hasLowercase = validate('containsLowercaseLetters', value, formData)
-      const hasUppercase = validate('containsUppercaseLetters', value, formData)
-      const hasSpecial = validate('containsSpecialCharacters', value, formData)
+      const hasNums = validate('containsNumbers', value)
+      const hasLowercase = validate('containsLowercaseLetters', value)
+      const hasUppercase = validate('containsUppercaseLetters', value)
+      const hasSpecial = validate('containsSpecialCharacters', value)
       const hasLength = value.length >= 8
 
       const isValid = hasNums && hasLowercase && hasUppercase && hasSpecial && hasLength
@@ -129,43 +132,10 @@ const Register = () => {
       ...prev,
       [name]: {
         ...prev[name as keyof RegisterValidation],
-        valid: validate(name, value, formData),
+        valid: validate(name, value),
         dirty: true,
       },
     }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
-      setError('All fields are required')
-      return
-    }
-    if (
-      !validation.email.valid ||
-      !validation.password.valid ||
-      !validation.confirmPassword.valid
-    ) {
-      setError('Please fix the errors in the form')
-      return
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
-    try {
-      const { data }: { data: AuthResponse } = await axios.post('/api/auth/signup', formData)
-      // TODO: remove next line
-      toastSuccess(data.message || 'Registration successful')
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const { message } = error.response?.data as AuthResponse
-        toastError(message || 'Registration unsuccessful, please try again')
-      } else {
-        toastError('Registration unsuccessful, please try again')
-      }
-    }
   }
 
   return (
@@ -178,7 +148,7 @@ const Register = () => {
       <div className='card w-[448px] shadow-sm bg-base-300/85'>
         <div className='card-body'>
           <h1 className='text-3xl font-thin tracking-wide text-center mb-12'>Register</h1>
-          <form className='flex flex-col gap-4' onSubmit={handleSubmit} noValidate>
+          <Form className='flex flex-col gap-4' method='post'>
             <label
               className={`input input-lg w-full ${
                 validation.email.dirty
@@ -293,12 +263,12 @@ const Register = () => {
             >
               Register
             </button>
-          </form>
+          </Form>
           <p className='text-center text-sm text-base-content font-thin'>
             Already have an account?{' '}
-            <a className='link link-primary link-hover font-bold' href='/login'>
+            <Link to='/login' className='link link-primary link-hover font-bold'>
               Login
-            </a>
+            </Link>
           </p>
         </div>
       </div>
