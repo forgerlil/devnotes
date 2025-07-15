@@ -1,4 +1,4 @@
-export const validate = (name: string, value: string, formData?: Record<string, string>) => {
+export const validate = (name: string, value: string, toCompare?: string) => {
   switch (name) {
     case 'email':
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -12,8 +12,8 @@ export const validate = (name: string, value: string, formData?: Record<string, 
       return /[A-Z]/.test(value)
     case 'containsSpecialCharacters':
       return /[@$!%*?&]/.test(value)
-    case 'confirmPassword':
-      return value === formData?.password
+    case 'compare':
+      return value === toCompare
     default:
       return false
   }

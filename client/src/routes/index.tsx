@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import App from '@/App'
 import { Login, Register, NoteDashboard } from '@/pages'
-import { loginAction } from '@/actions/login'
+import { loginAction, registerAction } from '@/actions/index'
 
 const router = createBrowserRouter([
   {
@@ -16,6 +16,7 @@ const router = createBrowserRouter([
   {
     path: 'register',
     Component: Register,
+    action: registerAction,
   },
   {
     path: 'notes/:id',
