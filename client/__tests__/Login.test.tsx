@@ -19,7 +19,7 @@ describe('<Login />', () => {
     const Stub = createRoutesStub([
       {
         path: '/login',
-        Component: Login,
+        Component: () => <Login />,
       },
     ])
 
@@ -32,7 +32,7 @@ describe('<Login />', () => {
     const Stub = createRoutesStub([
       {
         path: '/login',
-        Component: Login,
+        Component: () => <Login />,
         action: () => ({
           error: 'Email and password are required',
           data: null,
@@ -51,7 +51,7 @@ describe('<Login />', () => {
     const Stub = createRoutesStub([
       {
         path: '/login',
-        Component: Login,
+        Component: () => <Login />,
         action: () => ({
           error: 'Incorrect username or password, please verify and try again',
           data: null,
@@ -74,7 +74,7 @@ describe('<Login />', () => {
     const Stub = createRoutesStub([
       {
         path: '/login',
-        Component: Login,
+        Component: () => <Login />,
         action: () => ({
           error: null,
           data: null,
@@ -82,7 +82,7 @@ describe('<Login />', () => {
       },
       {
         path: '/notes/:id',
-        Component: NoteDashboard,
+        Component: () => <NoteDashboard />,
         action: () => {},
       },
     ])
@@ -103,11 +103,11 @@ describe('<Login />', () => {
     const Stub = createRoutesStub([
       {
         path: '/login',
-        Component: Login,
+        Component: () => <Login />,
       },
       {
         path: '/register',
-        Component: Register,
+        Component: () => <Register />,
       },
     ])
 
