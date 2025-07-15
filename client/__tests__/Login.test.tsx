@@ -10,11 +10,11 @@ vi.mock('@/lib/toastify', () => ({
   toastSuccess: vi.fn(),
 }))
 
-describe('<Login />', () => {
-  afterEach(() => {
-    vi.resetAllMocks()
-  })
+afterEach(() => {
+  vi.resetAllMocks()
+})
 
+describe('<Login />', () => {
   it('should render the Login page', () => {
     const Stub = createRoutesStub([
       {
@@ -43,8 +43,10 @@ describe('<Login />', () => {
     render(<Stub key={crypto.randomUUID()} initialEntries={['/login']} />)
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
 
-    expect(toastError).toHaveBeenCalledWith('Email and password are required')
-    expect(toastSuccess).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith('Email and password are required')
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
   })
 
   it('shows error toast if fields fail validation', async () => {
@@ -64,10 +66,12 @@ describe('<Login />', () => {
     await userEvent.type(screen.getByPlaceholderText('Password'), 'password')
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
 
-    expect(toastError).toHaveBeenCalledWith(
-      'Incorrect username or password, please verify and try again'
-    )
-    expect(toastSuccess).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith(
+        'Incorrect username or password, please verify and try again'
+      )
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
   })
 
   it('shows success toast and redirects to notes page with valid credentials', async () => {
