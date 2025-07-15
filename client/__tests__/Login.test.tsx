@@ -11,13 +11,13 @@ vi.mock('@/lib/toastify', () => ({
 }))
 
 describe('<Login />', () => {
-  const loginRoute = {
-    path: '/login',
-    Component: Login,
-  }
-
   it('should render the Login page', () => {
-    const Stub = createRoutesStub([loginRoute])
+    const Stub = createRoutesStub([
+      {
+        path: '/login',
+        Component: Login,
+      },
+    ])
 
     render(<Stub initialEntries={['/login']} />)
 
@@ -27,7 +27,8 @@ describe('<Login />', () => {
   it('should show error toast if form is submitted with empty fields', async () => {
     const Stub = createRoutesStub([
       {
-        ...loginRoute,
+        path: '/login',
+        Component: Login,
         action: () => ({
           error: 'Email and password are required',
           data: null,
@@ -45,7 +46,8 @@ describe('<Login />', () => {
   it('shows error toast if fields fail validation', async () => {
     const Stub = createRoutesStub([
       {
-        ...loginRoute,
+        path: '/login',
+        Component: Login,
         action: () => ({
           error: 'Incorrect username or password, please verify and try again',
           data: null,
@@ -67,7 +69,8 @@ describe('<Login />', () => {
   it('shows success toast and redirects to notes page with valid credentials', async () => {
     const Stub = createRoutesStub([
       {
-        ...loginRoute,
+        path: '/login',
+        Component: Login,
         action: () => ({
           error: null,
           data: null,
@@ -95,7 +98,8 @@ describe('<Login />', () => {
   it('redirects to register page on respective link', async () => {
     const Stub = createRoutesStub([
       {
-        ...loginRoute,
+        path: '/login',
+        Component: Login,
         action: () => ({
           error: null,
           data: null,
