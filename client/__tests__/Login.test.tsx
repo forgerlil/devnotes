@@ -5,33 +5,16 @@ import { createRoutesStub } from 'react-router'
 import { Login, Register, NoteDashboard } from '@/pages'
 import { toastError, toastSuccess } from '@/lib/toastify'
 
-const loginRoute = {
-  path: '/login',
-  Component: Login,
-  action: () => {},
-}
-
-const registerRoute = {
-  path: '/register',
-  Component: Register,
-  action: () => {},
-}
-
-const notesRoute = {
-  path: '/notes/:id',
-  Component: NoteDashboard,
-  action: () => {},
-}
-
 vi.mock('@/lib/toastify', () => ({
   toastError: vi.fn(),
   toastSuccess: vi.fn(),
 }))
 
 describe('<Login />', () => {
-  afterEach(() => {
-    loginRoute.action = () => {}
-  })
+  const loginRoute = {
+    path: '/login',
+    Component: Login,
+  }
 
   it('should render the Login page', () => {
     const Stub = createRoutesStub([loginRoute])
@@ -42,11 +25,15 @@ describe('<Login />', () => {
   })
 
   it('should show error toast if form is submitted with empty fields', async () => {
-    loginRoute.action = () => ({
-      error: 'Email and password are required',
-      data: null,
-    })
-    const Stub = createRoutesStub([loginRoute])
+    const Stub = createRoutesStub([
+      {
+        ...loginRoute,
+        action: () => ({
+          error: 'Email and password are required',
+          data: null,
+        }),
+      },
+    ])
 
     render(<Stub initialEntries={['/login']} />)
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
@@ -56,11 +43,15 @@ describe('<Login />', () => {
   })
 
   it('shows error toast if fields fail validation', async () => {
-    loginRoute.action = () => ({
-      error: 'Incorrect username or password, please verify and try again',
-      data: null,
-    })
-    const Stub = createRoutesStub([loginRoute])
+    const Stub = createRoutesStub([
+      {
+        ...loginRoute,
+        action: () => ({
+          error: 'Incorrect username or password, please verify and try again',
+          data: null,
+        }),
+      },
+    ])
 
     render(<Stub initialEntries={['/login']} />)
     await userEvent.type(screen.getByPlaceholderText('Email'), 'test@test.com')
@@ -74,12 +65,20 @@ describe('<Login />', () => {
   })
 
   it('shows success toast and redirects to notes page with valid credentials', async () => {
-    loginRoute.action = () => ({
-      error: null,
-      data: null,
-    })
-
-    const Stub = createRoutesStub([loginRoute, notesRoute])
+    const Stub = createRoutesStub([
+      {
+        ...loginRoute,
+        action: () => ({
+          error: null,
+          data: null,
+        }),
+      },
+      {
+        path: '/notes/:id',
+        Component: NoteDashboard,
+        action: () => {},
+      },
+    ])
 
     render(<Stub initialEntries={['/login']} />)
     await userEvent.type(screen.getByPlaceholderText('Email'), 'test@test.com')
@@ -94,7 +93,20 @@ describe('<Login />', () => {
   })
 
   it('redirects to register page on respective link', async () => {
-    const Stub = createRoutesStub([loginRoute, registerRoute])
+    const Stub = createRoutesStub([
+      {
+        ...loginRoute,
+        action: () => ({
+          error: null,
+          data: null,
+        }),
+      },
+      {
+        path: '/register',
+        Component: Register,
+        action: () => {},
+      },
+    ])
 
     render(<Stub initialEntries={['/login']} />)
     await userEvent.click(screen.getByRole('link', { name: 'Register' }))
