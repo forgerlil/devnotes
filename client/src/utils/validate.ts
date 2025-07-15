@@ -1,4 +1,4 @@
-export const validate = (name: string, value: string, formData: Record<string, string>) => {
+export const validate = (name: string, value: string, formData?: Record<string, string>) => {
   switch (name) {
     case 'email':
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -13,7 +13,7 @@ export const validate = (name: string, value: string, formData: Record<string, s
     case 'containsSpecialCharacters':
       return /[@$!%*?&]/.test(value)
     case 'confirmPassword':
-      return value === formData.password
+      return value === formData?.password
     default:
       return false
   }

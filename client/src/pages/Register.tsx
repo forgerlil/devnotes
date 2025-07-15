@@ -4,9 +4,8 @@ import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
 import { validate } from '@/utils/validate'
-import { RegisterValidation } from '@/types/userValidation.types'
+import { RegisterValidation, AuthResponse } from '@/types/auth.types'
 import { toastError, toastSuccess } from '@/lib/toastify'
-import { AuthResponse } from '@/types/userValidation.types'
 import { Link } from 'react-router'
 
 const Register = () => {

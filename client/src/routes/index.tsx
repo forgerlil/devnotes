@@ -3,7 +3,7 @@ import App from '@/App'
 import { Login, Register, NoteDashboard } from '@/pages'
 import { loginAction } from '@/actions/login'
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: '/',
     Component: App,
@@ -22,3 +22,5 @@ export const router = createBrowserRouter([
     Component: NoteDashboard,
   },
 ])
+
+export default router

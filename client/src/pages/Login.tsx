@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, Form, useActionData } from 'react-router'
+import { Link, Form, useActionData, useNavigate } from 'react-router'
 import { TiMail } from 'react-icons/ti'
 import { IoKeyOutline } from 'react-icons/io5'
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa'
-import { toastError } from '@/lib/toastify'
+import { toastError, toastSuccess } from '@/lib/toastify'
+import { LoginResponse } from '@/types/auth.types'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,15 +12,18 @@ const Login = () => {
     password: '',
   })
   const [showPassword, setShowPassword] = useState(false)
-  const actionData = useActionData()
-  const [error, setError] = useState('')
+  const actionData = useActionData<LoginResponse>()
+  const navigate = useNavigate()
 
   useEffect(() => {
-    if (error) {
-      toastError(error)
-      setError('')
+    if (actionData) {
+      if (actionData.error) toastError(actionData.error)
+      else {
+        toastSuccess(actionData.data?.message || 'Welcome back!')
+        void navigate('/notes/1')
+      }
     }
-  }, [error])
+  }, [actionData, navigate])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -37,7 +41,7 @@ const Login = () => {
       <div className='card w-[448px] shadow-sm bg-base-300/85'>
         <div className='card-body'>
           <h1 className='text-3xl font-thin tracking-wide text-center mb-12'>Login</h1>
-          <Form className='flex flex-col gap-4' method='post' action='/login'>
+          <Form className='flex flex-col gap-4' method='post'>
             <label className='input input-lg w-full validator'>
               <TiMail size={24} className='opacity-50' />
               <input
