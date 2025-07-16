@@ -18,16 +18,10 @@ const LoginForm = () => {
   }
 
   return (
-    <main className='flex justify-center items-center h-screen relative bg-neutral'>
-      <img
-        src='/photo-1517842645767-c639042777db.avif'
-        alt='logo'
-        className='w-full h-full object-cover absolute top-0 left-0 blur-lg'
-        draggable={false}
-      />
-      <div className='card w-[448px] shadow-sm bg-base-300/85'>
+    <main className='flex-1 my-8 md:mt-12 px-2 xs:flex xs:justify-center'>
+      <div className='card w-full h-fit xs:w-[448px] shadow-sm bg-base-100/75'>
         <div className='card-body'>
-          <h1 className='text-3xl font-thin tracking-wide text-center mb-12'>Login</h1>
+          <h1 className='text-3xl font-thin tracking-wide text-center mb-12 font-title'>Login</h1>
           <Form className='flex flex-col gap-4' method='post'>
             <label className='input input-lg w-full validator'>
               <TiMail size={24} className='opacity-50' />

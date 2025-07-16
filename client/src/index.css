@@ -1,9 +1,82 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import 'tailwindcss';
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark;
+  themes: sunScreen --default, midnightOil --prefersdark;
+}
+
+@plugin "daisyui/theme" {
+  name: 'sunScreen';
+  default: false;
+  prefersdark: false;
+  color-scheme: 'light';
+  --color-base-100: #fafffe;
+  --color-base-200: #f0f0f2;
+  --color-base-300: #e6d7bc;
+  --color-base-content: #1c1c1f;
+  --color-primary: #faaa16;
+  --color-primary-content: #1c1c1f;
+  --color-secondary: #f5e0b2;
+  --color-secondary-content: #1c1c1f;
+  --color-accent: #a27cff;
+  --color-accent-content: oklch(28% 0.091 267.935);
+  --color-neutral: oklch(14% 0.004 49.25);
+  --color-neutral-content: oklch(98% 0.001 106.423);
+  --color-info: #357edd;
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: #2ecc71;
+  --color-success-content: oklch(26% 0.065 152.934);
+  --color-warning: #f39c12;
+  --color-warning-content: oklch(28% 0.066 53.813);
+  --color-error: #c0392b;
+  --color-error-content: oklch(98% 0.001 106.423);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 0.5px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: 'midnightOil';
+  default: false;
+  prefersdark: false;
+  color-scheme: 'dark';
+  --color-base-100: #1c1c1f;
+  --color-base-200: #2a2a2e;
+  --color-base-300: #3a3a3f;
+  --color-base-content: #fafffe;
+  --color-primary: #faaa16;
+  --color-primary-content: #1c1c1f;
+  --color-secondary: #b77f21;
+  --color-secondary-content: #fafffe;
+  --color-accent: oklch(71% 0.203 305.504);
+  --color-accent-content: oklch(28% 0.091 267.935);
+  --color-neutral: oklch(14% 0.004 49.25);
+  --color-neutral-content: oklch(98% 0.001 106.423);
+  --color-info: #53b7f3;
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: #34c38f;
+  --color-success-content: oklch(26% 0.065 152.934);
+  --color-warning: #f1c40f;
+  --color-warning-content: oklch(28% 0.066 53.813);
+  --color-error: #e74c3c;
+  --color-error-content: oklch(28% 0.109 3.907);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 0.5px;
+  --depth: 0;
+  --noise: 0;
 }
 
 @theme {
-  --default-font-family: "Manrope", sans
+  --breakpoint-xs: 30rem;
+  --default-font-family: 'Poppins', sans;
+  --font-title: 'Manrope', sans;
 }
