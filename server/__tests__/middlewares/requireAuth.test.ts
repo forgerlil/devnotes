@@ -22,4 +22,14 @@ describe('requireAuth', () => {
 
     expect(next).toHaveBeenCalled()
   })
+
+  it('should reject the request if decoded value does not match body data', async () => {
+    req.decoded = { userId: '123', sessionId: '456' }
+    req.body = { userId: '456' }
+    await requireAuth(req, res, next)
+
+    expect(next).toHaveBeenCalledWith(expect.any(HTTPError))
+    expect(next.mock.calls[0][0].message).toBe('Unauthorised')
+    expect(next.mock.calls[0][0].statusCode).toBe(401)
+  })
 })
