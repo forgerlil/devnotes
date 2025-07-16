@@ -5,6 +5,6 @@ import type { LoaderFunctionArgs } from 'react-router'
 export const authwall = ({ request }: LoaderFunctionArgs) => {
   const { token } = useAuthStore.getState()
   if (!token) {
-    return redirect('/')
+    return redirect('/login')
   }
 }

@@ -1,4 +1,4 @@
-import { useLocation, Outlet, Navigate } from 'react-router'
+import { useLocation, Outlet } from 'react-router'
 import NavBar from '@/components/generic/NavBar'
 
 const PublicLayout = () => {
@@ -30,9 +30,7 @@ const PublicLayout = () => {
     ],
   }
 
-  if (!Object.hasOwn(menuItems, pathname)) {
-    return <Navigate to='/' />
-  }
+  const menu = menuItems[pathname] || menuItems['/']
 
   return (
     <div className='min-h-screen relative flex flex-col'>
@@ -44,14 +42,14 @@ const PublicLayout = () => {
       />
       <NavBar>
         <NavBar.DesktopMenu>
-          {menuItems[pathname].map((item) => (
+          {menu.map((item) => (
             <NavBar.MenuItem key={`${item.to}-navbar-desktop`} to={item.to} primary={item.primary}>
               {item.content}
             </NavBar.MenuItem>
           ))}
         </NavBar.DesktopMenu>
         <NavBar.MobileMenu>
-          {menuItems[pathname].map((item) => (
+          {menu.map((item) => (
             <NavBar.MenuItem key={`${item.to}-navbar-mobile`} to={item.to} primary={item.primary}>
               {item.content}
             </NavBar.MenuItem>

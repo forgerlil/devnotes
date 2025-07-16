@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import App from '@/App'
 import PublicLayout from '@/layouts/PublicLayout'
-import { Login, Register, NoteDashboard } from '@/pages'
+import { Login, Register, NoteDashboard, NotFound } from '@/pages'
 import { loginAction, registerAction, authwall } from '@/actions'
 
 const router = createBrowserRouter([
@@ -22,6 +22,10 @@ const router = createBrowserRouter([
         path: 'register',
         Component: Register,
         action: registerAction,
+      },
+      {
+        path: '*',
+        Component: NotFound,
       },
     ],
   },
