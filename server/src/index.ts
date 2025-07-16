@@ -11,6 +11,7 @@ app.use(
   cors({
     origin: [configs.clientUrl],
     credentials: true,
+    exposedHeaders: ['Authorization'],
   }),
 )
 app.use('/api', routes)
