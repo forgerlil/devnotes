@@ -23,7 +23,7 @@ const LoginForm = () => {
         <div className='card-body'>
           <h1 className='text-3xl font-thin tracking-wide text-center mb-12 font-title'>Login</h1>
           <Form className='flex flex-col gap-4' method='post'>
-            <label className='input input-lg w-full validator'>
+            <label className='input input-lg w-full'>
               <TiMail size={24} className='opacity-50' />
               <input
                 type='email'
@@ -31,9 +31,9 @@ const LoginForm = () => {
                 placeholder='Email'
                 value={formData.email}
                 onChange={handleChange}
+                autoComplete='email'
               />
             </label>
-            <div className='validator-hint hidden -mt-2'>Enter valid email address</div>
             <div className='relative flex items-center flex-wrap gap-2'>
               <label className='input input-lg w-full'>
                 <IoKeyOutline size={20} className='opacity-50' />
