@@ -1,14 +1,8 @@
-import { useEffect, useState } from 'react'
 import { LuSunDim, LuMoon } from 'react-icons/lu'
+import { useTheme } from '@/context/ThemeContext'
 
 const ThemeToggle = ({ className, icon = false }: { className?: string; icon?: boolean }) => {
-  const [theme, setTheme] = useState(
-    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'midnightOil' : 'sunScreen'
-  )
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-  }, [theme])
+  const { theme, setTheme } = useTheme()
 
   return icon ? (
     <div className='flex items-center gap-2'>
@@ -17,7 +11,7 @@ const ThemeToggle = ({ className, icon = false }: { className?: string; icon?: b
         type='checkbox'
         defaultChecked
         className={`toggle checked:bg-transparent ${className}`}
-        onChange={() => setTheme(theme === 'sunScreen' ? 'midnightOil' : 'sunScreen')}
+        onChange={() => setTheme((prev) => (prev === 'sunScreen' ? 'midnightOil' : 'sunScreen'))}
       />
     </div>
   ) : (
@@ -25,7 +19,7 @@ const ThemeToggle = ({ className, icon = false }: { className?: string; icon?: b
       type='checkbox'
       defaultChecked
       className={`toggle ${className}`}
-      onChange={() => setTheme(theme === 'sunScreen' ? 'midnightOil' : 'sunScreen')}
+      onChange={() => setTheme((prev) => (prev === 'sunScreen' ? 'midnightOil' : 'sunScreen'))}
     />
   )
 }
