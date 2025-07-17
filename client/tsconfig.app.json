@@ -27,5 +27,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "vite-env.d.ts", "__tests__"]
+  "include": ["src", "vite-env.d.ts", "__tests__", "global.d.ts", "setup-vitest.ts", "__mocks__"]
 }
