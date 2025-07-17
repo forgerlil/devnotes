@@ -1,12 +1,10 @@
+import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
 import { Slide, ToastContainer } from 'react-toastify'
-import axios from 'axios'
 import router from './routes'
-import './index.css'
-
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+import ThemeProvider from './context/ThemeProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -22,6 +20,8 @@ createRoot(document.getElementById('root')!).render(
       theme='light'
       transition={Slide}
     />
-    <RouterProvider router={router} />
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </StrictMode>
 )
