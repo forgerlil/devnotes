@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import { nanoid } from 'nanoid'
+import { ObjectId } from 'mongodb'
 import { getCollection } from '@/db/mongo.js'
 import HTTPError from '@/utils/httpError.js'
 import { User } from '@/types/auth.types.js'
@@ -129,4 +130,19 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-export { signUp, login, logout }
+const getUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.decoded) throw new HTTPError('Unauthorized', 401)
+    const { userId } = req.decoded
+    const collection = await getCollection('users')
+    const user = await collection.findOne<User>(
+      { _id: new ObjectId(userId) },
+      { projection: { password: 0 } },
+    )
+    res.status(200).json(user)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export { signUp, login, logout, getUser }

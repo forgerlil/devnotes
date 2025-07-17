@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useActionData, useNavigate } from 'react-router'
 import { LoginForm } from '@/components/auth'
-import { toastError, toastSuccess } from '@/lib/toastify'
+import { toastError } from '@/lib/toastify'
 import { LoginResponse } from '@/types/auth.types'
 
 const Login = () => {
@@ -11,10 +11,7 @@ const Login = () => {
   useEffect(() => {
     if (actionData) {
       if (actionData.error) toastError(actionData.error)
-      else {
-        toastSuccess(actionData.data?.message || 'Welcome back!')
-        void navigate('/notes/1')
-      }
+      else void navigate('/notes/1')
     }
   }, [actionData, navigate])
 
