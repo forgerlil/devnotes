@@ -256,7 +256,6 @@ describe('POST /api/auth/logout', async () => {
     expect(res.status).toBe(401)
   })
 
-  // WIP - mock redis deleteSession & session object
   it('should return 204 if a valid token is provided', async () => {
     const { accessToken, refreshToken } = generateTokens(userId, sessionId)
     const session = createMockSessionFromTokens({ userId, accessToken, refreshToken })
@@ -272,5 +271,46 @@ describe('POST /api/auth/logout', async () => {
     expect(deleteSessionMock).toHaveBeenCalledOnce()
     expect(res.headers['set-cookie'][0]).toContain('refresh_token')
     expect(res.status).toBe(204)
+  })
+})
+
+describe('GET /api/auth/me', async () => {
+  let headers: IncomingHttpHeaders
+  const userId = '68505a07509f48ac99f58b71'
+  const sessionId = '68505a07509f48ac99f58b71'
+
+  beforeEach(() => {
+    headers = {
+      ip: '123.45.67.89',
+      'user-agent': 'test-user-agent',
+      'content-type': 'application/json',
+    }
+  })
+
+  it('should return 401 if no token is provided', async () => {
+    const res = await request(app).get('/api/auth/me')
+    expect(res.status).toBe(401)
+  })
+
+  it('should return 200 and user data if a valid token is provided', async () => {
+    const { accessToken, refreshToken } = generateTokens(userId, sessionId)
+    const session = createMockSessionFromTokens({ userId, accessToken, refreshToken })
+    headers.authorization = `Bearer ${accessToken}`
+    headers.cookie = `refresh_token=${refreshToken}`
+
+    checkRevokedCredentialsMock.mockResolvedValueOnce(false)
+    findUserSessionMock.mockResolvedValueOnce(session)
+    findOneMock.mockResolvedValueOnce({
+      _id: userId,
+      email: 'test@test.com',
+    })
+
+    const res = await request(app).get('/api/auth/me').set(headers)
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({
+      _id: userId,
+      email: 'test@test.com',
+    })
   })
 })

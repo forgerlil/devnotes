@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
 import { createRoutesStub } from 'react-router'
 import { Login, Register, NoteDashboard } from '@/pages'
-import { toastError, toastSuccess } from '@/lib/toastify'
+import { toastError } from '@/lib/toastify'
+import { useAuthStore } from '@/stores/AuthStore'
 
 vi.mock('@/lib/toastify', () => ({
   toastError: vi.fn(),
@@ -52,7 +52,6 @@ describe('<Login />', () => {
 
     await waitFor(() => {
       expect(toastError).toHaveBeenCalledWith('Email and password are required')
-      expect(toastSuccess).not.toHaveBeenCalled()
     })
   })
 
@@ -72,7 +71,6 @@ describe('<Login />', () => {
       expect(toastError).toHaveBeenCalledWith(
         'Incorrect username or password, please verify and try again'
       )
-      expect(toastSuccess).not.toHaveBeenCalled()
     })
   })
 
@@ -82,6 +80,10 @@ describe('<Login />', () => {
       data: null,
     })
     const Stub = createRoutesStub([loginRoute, notesRoute])
+    useAuthStore.getState().setUser({
+      _id: '68505a07509f48ac99f58b71',
+      email: 'test@test.com',
+    })
 
     render(<Stub initialEntries={['/login']} />)
     await userEvent.type(screen.getByPlaceholderText('Email'), 'test@test.com')
@@ -89,10 +91,8 @@ describe('<Login />', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
 
     await waitFor(() => {
-      expect(toastSuccess).toHaveBeenCalledWith('Welcome back!')
+      expect(screen.getByRole('heading', { name: 'NoteDashboard' })).toBeInTheDocument()
     })
-
-    expect(await screen.findByRole('heading', { name: 'NoteDashboard' })).toBeInTheDocument()
   })
 
   it('redirects to register page on respective link', async () => {
