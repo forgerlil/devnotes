@@ -1,6 +1,4 @@
 import { createBrowserRouter } from 'react-router'
-import App from '@/App'
-import PublicLayout from '@/layouts/PublicLayout'
 import axios from 'axios'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -9,11 +7,20 @@ axios.defaults.withCredentials = true
 const router = createBrowserRouter([
   {
     path: '/',
-    Component: PublicLayout,
+    lazy: async () => {
+      const [{ default: Component }, { authRedirection }] = await Promise.all([
+        import('@/layouts/PublicLayout'),
+        import('@/actions/authRedirection'),
+      ])
+      return { Component, loader: authRedirection }
+    },
     children: [
       {
         index: true,
-        Component: App,
+        lazy: async () => {
+          const { default: Component } = await import('@/pages/Home')
+          return { Component }
+        },
       },
       {
         path: 'login',
