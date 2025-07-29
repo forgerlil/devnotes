@@ -1,8 +1,4 @@
 import { createBrowserRouter } from 'react-router'
-import App from '@/App'
-import PublicLayout from '@/layouts/PublicLayout'
-import { Login, Register, NoteDashboard, NotFound } from '@/pages'
-import { loginAction, registerAction, authwall } from '@/actions'
 import axios from 'axios'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -11,32 +7,59 @@ axios.defaults.withCredentials = true
 const router = createBrowserRouter([
   {
     path: '/',
-    Component: PublicLayout,
+    lazy: async () => {
+      const [{ default: Component }, { authRedirection }] = await Promise.all([
+        import('@/layouts/PublicLayout'),
+        import('@/loaders/authRedirection'),
+      ])
+      return { Component, loader: authRedirection }
+    },
     children: [
       {
         index: true,
-        Component: App,
+        lazy: async () => {
+          const { default: Component } = await import('@/pages/Home')
+          return { Component }
+        },
       },
       {
         path: 'login',
-        Component: Login,
-        action: loginAction,
+        lazy: async () => {
+          const [{ default: Component }, { loginAction }] = await Promise.all([
+            import('@/pages/Login'),
+            import('@/actions/login'),
+          ])
+          return { Component, action: loginAction }
+        },
       },
       {
         path: 'register',
-        Component: Register,
-        action: registerAction,
+        lazy: async () => {
+          const [{ default: Component }, { registerAction }] = await Promise.all([
+            import('@/pages/Register'),
+            import('@/actions/register'),
+          ])
+          return { Component, action: registerAction }
+        },
       },
       {
         path: '*',
-        Component: NotFound,
+        lazy: async () => {
+          const { default: Component } = await import('@/pages/NotFound')
+          return { Component }
+        },
       },
     ],
   },
   {
     path: 'notes/:id',
-    Component: NoteDashboard,
-    loader: authwall,
+    lazy: async () => {
+      const [{ default: Component }, { authwall }] = await Promise.all([
+        import('@/pages/NoteDashboard'),
+        import('@/loaders/authwall'),
+      ])
+      return { Component, loader: authwall }
+    },
   },
 ])
 
