@@ -10,7 +10,7 @@ const router = createBrowserRouter([
     lazy: async () => {
       const [{ default: Component }, { authRedirection }] = await Promise.all([
         import('@/layouts/PublicLayout'),
-        import('@/actions/authRedirection'),
+        import('@/loaders/authRedirection'),
       ])
       return { Component, loader: authRedirection }
     },
@@ -56,7 +56,7 @@ const router = createBrowserRouter([
     lazy: async () => {
       const [{ default: Component }, { authwall }] = await Promise.all([
         import('@/pages/NoteDashboard'),
-        import('@/actions/authwall'),
+        import('@/loaders/authwall'),
       ])
       return { Component, loader: authwall }
     },
