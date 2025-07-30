@@ -34,6 +34,11 @@ export type AuthStore = {
   setUser: (user: User | null) => void
 }
 
+export type LoaderStore = {
+  loadingProgress: number
+  setLoadingProgress: (progress: number) => void
+}
+
 // Actions
 export interface AuthResponse {
   message?: string
