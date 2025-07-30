@@ -3,10 +3,15 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/AuthStore'
 import type { User } from '@/types/auth.types'
 import { toastError } from '@/lib/toastify'
+import { useLoaderStore } from '@/stores/LoaderStore'
 
 export const authRedirection = async () => {
-  const { token, user } = useAuthStore.getState()
-  if (user) return redirect('/notes/1')
+  const { token, user, setToken, setUser } = useAuthStore.getState()
+  const { setLoadingProgress } = useLoaderStore.getState()
+  if (user) {
+    setLoadingProgress(100)
+    return redirect('/notes/1')
+  }
 
   try {
     const options: Partial<AxiosRequestConfig> = {
@@ -17,10 +22,15 @@ export const authRedirection = async () => {
 
     const res = await axios<User>('/api/auth/me', options)
 
+    setLoadingProgress(30)
+
     if (res.headers.authorization && typeof res.headers.authorization === 'string') {
       const accessToken = res.headers.authorization.split(' ')[1]
-      useAuthStore.getState().setToken(accessToken)
-      useAuthStore.getState().setUser(res.data)
+      setLoadingProgress(60)
+      setToken(accessToken)
+      setUser(res.data)
+      setLoadingProgress(100)
+
       return redirect('/notes/1')
     } else {
       return redirect('/login')
