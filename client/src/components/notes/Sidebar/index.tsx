@@ -1,96 +1,14 @@
-import { useAuthStore } from '@/stores/AuthStore'
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Link } from 'react-router'
-import { FaStar } from 'react-icons/fa'
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from 'react-icons/md'
-import { CiStar } from 'react-icons/ci'
-import { IoCreateOutline } from 'react-icons/io5'
-import { HiOutlineMagnifyingGlass } from 'react-icons/hi2'
-import ThemeToggle from '../generic/ThemeToggle'
-import { User } from '@/types/auth.types'
-
-// TODO: Remove this once it's in the backend
-interface Note {
-  id: string
-  title: string
-  content: string
-  isFavorite: boolean
-  space?: string
-}
-
-const SidebarActions = ({ isOpen }: { isOpen: boolean }) => {
-  return (
-    <div className='relative flex flex-col gap-2 mt-4 overflow-y-auto overflow-x-hidden'>
-      <div className='flex-shrink-0 flex flex-col gap-2'>
-        <button className='btn btn-ghost border-none justify-start gap-2 hover:bg-base-300 rounded-md p-2 font-normal'>
-          <IoCreateOutline className='text-2xl flex-shrink-0' />
-          <p
-            className={`transition-all duration-200 ease-out whitespace-nowrap ${
-              isOpen ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            Create New Note
-          </p>
-        </button>
-        <button className='btn btn-ghost border-none justify-start gap-2 hover:bg-base-300 rounded-md p-2 font-normal'>
-          <HiOutlineMagnifyingGlass className='text-2xl flex-shrink-0' />
-          <p
-            className={`transition-all duration-200 ease-in-out whitespace-nowrap ${
-              isOpen ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            Search Notes
-          </p>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-const NoteList = ({ notes }: { notes: Note[] }) => {
-  return (
-    <div className='flex flex-col gap-2 mb-16 overflow-y-auto overflow-x-hidden'>
-      {notes.map((note) => (
-        <div
-          className='btn btn-ghost border-none hover:bg-base-300 justify-start gap-2 font-normal pr-3'
-          key={note.id}
-        >
-          {note.isFavorite ? (
-            <FaStar className='text-primary flex-shrink-0' />
-          ) : (
-            <CiStar className='flex-shrink-0' />
-          )}
-          <Link to={`/notes/${note.id}`} className='w-[95%]'>
-            <p className='truncate text-left'>{note.title}</p>
-          </Link>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-const Avatar = ({ isOpen, user }: { isOpen: boolean; user: User }) => {
-  return (
-    <div className='relative btn btn-ghost border-none justify-start gap-2 font-normal w-full h-fit py-2 px-1 transition-all duration-200 ease-in-out hover:bg-base-300'>
-      <div className='avatar'>
-        <div className='mask mask-hexagon-2 w-9 h-9 bg-primary opacity-70 absolute -top-0.5 -left-0.5'></div>
-        <div className='mask mask-hexagon-2 w-8 h-8'>
-          <img src='https://placedog.net/80/80' />
-        </div>
-      </div>
-      <p
-        className={`transition-all duration-200 ease-in-out text-sm truncate ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        {user?.email}
-      </p>
-    </div>
-  )
-}
+import ThemeToggle from '@/components/generic/ThemeToggle'
+import Avatar from '@/components/generic/Avatar'
+import SidebarActions from './SidebarActions'
+import NoteMenu from './NoteMenu'
+import { Note } from '@/types/note.types'
 
 const Sidebar = () => {
-  const { user } = useAuthStore()
+  const user = useAuthenticatedUser()
   const [isOpen, setIsOpen] = useState(true)
   const [width, setWidth] = useState(localStorage.getItem('sidebarWidth') || 256)
   const [isResizing, setIsResizing] = useState(false)
@@ -305,15 +223,24 @@ const Sidebar = () => {
         }`}
         style={isOpen ? { width: `${width}px` } : undefined}
       >
-        <div className='flex-shrink-0'>
-          <Avatar isOpen={isOpen} user={user!} />
+        <div className='flex-shrink-0 pr-3'>
+          <div className='relative btn btn-ghost border-none justify-start gap-2 font-normal w-full h-fit py-2 px-1 transition-all duration-200 ease-in-out hover:bg-base-300'>
+            <Avatar user={user} size={8} />
+            <p
+              className={`transition-all duration-200 ease-in-out text-sm truncate ${
+                isOpen ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              {user.displayName || user.email}
+            </p>
+          </div>
         </div>
 
-        <div className='flex-shrink-0'>
+        <div className='flex-shrink-0 pr-3'>
           <SidebarActions isOpen={isOpen} />
           {isOpen && <hr className='my-4 text-primary/50 mr-3' />}
         </div>
-        {isOpen && <NoteList notes={notes} />}
+        {isOpen && <NoteMenu notes={notes} />}
 
         <div
           className={`absolute bottom-0 right-0 flex bg-base-200 w-full py-2 px-3 items-center ${
