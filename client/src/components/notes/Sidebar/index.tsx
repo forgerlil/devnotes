@@ -1,4 +1,3 @@
-import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from 'react-icons/md'
 import ThemeToggle from '@/components/generic/ThemeToggle'
@@ -8,7 +7,6 @@ import { Note } from '@/types/note.types'
 import UserActions from './UserActions'
 
 const Sidebar = () => {
-  const user = useAuthenticatedUser()
   const [isOpen, setIsOpen] = useState(true)
   const [width, setWidth] = useState(localStorage.getItem('sidebarWidth') || 256)
   const [isResizing, setIsResizing] = useState(false)
