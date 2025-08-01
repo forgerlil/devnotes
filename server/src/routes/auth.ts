@@ -15,6 +15,6 @@ router.use((req, res, next) => {
 router.post('/signup', ...userValidation.signUp, signUp)
 router.post('/login', ...userValidation.login, login)
 router.get('/me', tokenVerify, requireAuth, getUser)
-router.post('/logout', tokenVerify, requireAuth, logout)
+router.post('/logout', tokenVerify, logout)
 
 export default router

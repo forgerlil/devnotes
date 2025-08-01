@@ -251,9 +251,12 @@ describe('POST /api/auth/logout', async () => {
     }
   })
 
-  it('should return 401 if no token is provided', async () => {
+  it('should return not delete session if no token is provided', async () => {
     const res = await request(app).post('/api/auth/logout')
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(204)
+    expect(res.headers['set-cookie']).toBeDefined()
+    expect(res.headers['set-cookie'][0]).toContain('refresh_token')
+    expect(deleteSessionMock).not.toHaveBeenCalled()
   })
 
   it('should return 204 if a valid token is provided', async () => {
