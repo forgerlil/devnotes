@@ -121,8 +121,8 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { sessionId } = req.decoded!
-    await deleteSession(sessionId)
+    const sessionId = req.decoded?.sessionId
+    if (sessionId) await deleteSession(sessionId)
     res.clearCookie('refresh_token')
     res.sendStatus(204)
   } catch (error) {
