@@ -3,7 +3,7 @@ const NotesFallback = () => {
     <div className='flex min-h-screen bg-base-100'>
       <aside className='relative flex flex-col gap-4 w-56 bg-base-200 h-screen pt-4 px-3'>
         <div className=' flex items-center gap-2 pr-3'>
-          <div className='skeleton mask mask-hexagon-2 h-16 w-16 shrink-0'></div>
+          <div className='skeleton mask mask-hexagon-2 h-8 w-8 shrink-0'></div>
           <div className='skeleton h-6 w-full'></div>
         </div>
         <div className='flex flex-col gap-4'>
