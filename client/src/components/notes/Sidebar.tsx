@@ -71,7 +71,7 @@ const NoteList = ({ notes }: { notes: Note[] }) => {
 
 const Avatar = ({ isOpen, user }: { isOpen: boolean; user: User }) => {
   return (
-    <div className='relative btn btn-ghost justify-start gap-2 font-normal w-full h-fit py-2 px-1 transition-all duration-200 ease-in-out hover:bg-base-300'>
+    <div className='relative btn btn-ghost border-none justify-start gap-2 font-normal w-full h-fit py-2 px-1 transition-all duration-200 ease-in-out hover:bg-base-300'>
       <div className='avatar'>
         <div className='mask mask-hexagon-2 w-9 h-9 bg-primary opacity-70 absolute -top-0.5 -left-0.5'></div>
         <div className='mask mask-hexagon-2 w-8 h-8'>
