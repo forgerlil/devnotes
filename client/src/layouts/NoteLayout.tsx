@@ -3,14 +3,12 @@ import Sidebar from '@/components/notes/Sidebar'
 
 const NoteLayout = () => {
   return (
-    <>
-      <div className='flex min-h-screen bg-base-100'>
-        <Sidebar />
-        <main className='relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden'>
-          <Outlet />
-        </main>
-      </div>
-    </>
+    <div className='flex min-h-screen bg-base-100'>
+      <Sidebar />
+      <main className='relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden'>
+        <Outlet />
+      </main>
+    </div>
   )
 }
 
