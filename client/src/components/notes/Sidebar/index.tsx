@@ -2,10 +2,10 @@ import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from 'react-icons/md'
 import ThemeToggle from '@/components/generic/ThemeToggle'
-import Avatar from '@/components/generic/Avatar'
 import SidebarActions from './SidebarActions'
 import NoteMenu from './NoteMenu'
 import { Note } from '@/types/note.types'
+import UserActions from './UserActions'
 
 const Sidebar = () => {
   const user = useAuthenticatedUser()
@@ -218,22 +218,13 @@ const Sidebar = () => {
     <>
       <aside
         ref={sidebarRef}
-        className={`sticky bg-base-200 hidden md:flex md:flex-col transition-all duration-100 ease-out pl-3 pt-2 top-0 h-screen ${
-          !isOpen && 'md:w-16'
+        className={`sticky bg-base-200 flex flex-col transition-all duration-100 ease-out pl-3 pt-2 top-0 h-screen z-10 overflow-visible ${
+          !isOpen && 'w-16'
         }`}
         style={isOpen ? { width: `${width}px` } : undefined}
       >
-        <div className='flex-shrink-0 pr-3'>
-          <div className='relative btn btn-ghost border-none justify-start gap-2 font-normal w-full h-fit py-2 px-1 transition-all duration-200 ease-in-out hover:bg-base-300'>
-            <Avatar user={user} size={8} />
-            <p
-              className={`transition-all duration-200 ease-in-out text-sm truncate ${
-                isOpen ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              {user.displayName || user.email}
-            </p>
-          </div>
+        <div className={`flex-shrink-0 pr-3 ${!isOpen ? 'relative' : ''}`}>
+          <UserActions isOpen={isOpen} />
         </div>
 
         <div className='flex-shrink-0 pr-3'>

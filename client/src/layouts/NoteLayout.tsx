@@ -6,7 +6,7 @@ const NoteLayout = () => {
     <>
       <div className='flex min-h-screen bg-base-100'>
         <Sidebar />
-        <main className='relative flex flex-col flex-1 lg:overflow-y-auto lg:overflow-x-hidden'>
+        <main className='relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden'>
           <Outlet />
         </main>
       </div>

@@ -3,23 +3,21 @@ import { CiMenuKebab } from 'react-icons/ci'
 import { useEffect, useState } from 'react'
 import logo from '/logo.svg'
 import ThemeToggle from './ThemeToggle'
+import Dropdown from './Dropdown'
 
 const MobileMenu = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='dropdown dropdown-end sm:hidden'>
-      <div tabIndex={0} role='button' className=' btn-ghost hover:bg-transparent m-1'>
+    <Dropdown className='dropdown-end sm:hidden'>
+      <Dropdown.Header>
         <CiMenuKebab />
-      </div>
-      <ul
-        tabIndex={0}
-        className='dropdown-content menu bg-base-100 rounded-box z-1 w-fit p-2 shadow-sm'
-      >
+      </Dropdown.Header>
+      <Dropdown.Items>
         {children}
-        <li className='w-full'>
+        <Dropdown.Item>
           <ThemeToggle icon />
-        </li>
-      </ul>
-    </div>
+        </Dropdown.Item>
+      </Dropdown.Items>
+    </Dropdown>
   )
 }
 
