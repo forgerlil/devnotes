@@ -4,6 +4,12 @@ import { useTheme } from '@/context/ThemeContext'
 const ThemeToggle = ({ className, icon = false }: { className?: string; icon?: boolean }) => {
   const { theme, setTheme } = useTheme()
 
+  const handleThemeChange = () => {
+    const newTheme = theme === 'sunScreen' ? 'midnightOil' : 'sunScreen'
+    localStorage.setItem('theme', newTheme)
+    setTheme(newTheme)
+  }
+
   return icon ? (
     <div className='flex items-center gap-2'>
       {theme === 'sunScreen' ? <LuSunDim /> : <LuMoon />}
@@ -11,7 +17,7 @@ const ThemeToggle = ({ className, icon = false }: { className?: string; icon?: b
         type='checkbox'
         defaultChecked
         className={`toggle checked:bg-transparent ${className}`}
-        onChange={() => setTheme((prev) => (prev === 'sunScreen' ? 'midnightOil' : 'sunScreen'))}
+        onChange={handleThemeChange}
       />
     </div>
   ) : (
@@ -19,7 +25,7 @@ const ThemeToggle = ({ className, icon = false }: { className?: string; icon?: b
       type='checkbox'
       defaultChecked
       className={`toggle ${className}`}
-      onChange={() => setTheme((prev) => (prev === 'sunScreen' ? 'midnightOil' : 'sunScreen'))}
+      onChange={handleThemeChange}
     />
   )
 }

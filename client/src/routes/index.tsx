@@ -57,11 +57,20 @@ const router = createBrowserRouter([
     path: 'notes/:id',
     lazy: async () => {
       const [{ default: Component }, { authwall }] = await Promise.all([
-        import('@/pages/NoteDashboard'),
+        import('@/layouts/NoteLayout'),
         import('@/loaders/authwall'),
       ])
       return { Component, loader: authwall }
     },
+    children: [
+      {
+        index: true,
+        lazy: async () => {
+          const { default: Component } = await import('@/pages/NoteDashboard')
+          return { Component }
+        },
+      },
+    ],
   },
 ])
 
