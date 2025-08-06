@@ -244,7 +244,7 @@ const Sidebar = () => {
 
         {isOpen && (
           <div
-            className='absolute right-0 top-0 bottom-0 w-4 cursor-col-resize'
+            className='absolute right-0 top-0 bottom-0 w-2 cursor-col-resize'
             onMouseDown={handleMouseDown}
           >
             <div className='absolute right-0 top-0 bottom-0 w-1 hover:bg-linear-to-b hover:from-transparent hover:via-primary/20 hover:to-transparent transition-colors duration-50' />

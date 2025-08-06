@@ -5,7 +5,7 @@ import { Note } from '@/types/note.types'
 
 const NoteMenu = ({ notes }: { notes: Note[] }) => {
   return (
-    <div className='flex flex-col gap-2 mb-16 overflow-y-auto overflow-x-hidden'>
+    <div className='flex flex-col gap-2 mb-16 overflow-y-auto overflow-x-hidden pr-2 mr-2'>
       {notes.map((note) => (
         <div
           className='btn btn-ghost border-none hover:bg-base-300 justify-start gap-2 font-normal pr-3'
