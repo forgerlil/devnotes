@@ -1,11 +1,4 @@
-import { Navigate } from 'react-router'
-import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser'
-
 const NoteDashboard = () => {
-  const user = useAuthenticatedUser()
-
-  if (!user) return <Navigate to='/login' />
-
   return (
     <div className='pt-4 px-12'>
       <h1 className='text-3xl font-thin tracking-wide mb-8 font-title'>NoteDashboard</h1>

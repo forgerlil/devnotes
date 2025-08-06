@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { useNavigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 import Avatar from '@/components/generic/Avatar'
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser'
 import { useAuthStore } from '@/stores/AuthStore'
@@ -11,10 +11,14 @@ const UserActions = ({ isOpen }: { isOpen: boolean }) => {
   const token = useAuthStore((state) => state.token)
   const setUser = useAuthStore((state) => state.setUser)
   const setToken = useAuthStore((state) => state.setToken)
+  const setIsLoggingOut = useAuthStore((state) => state.setIsLoggingOut)
+
+  if (!user) return <Navigate to='/login' replace />
 
   // TODO: Move this to action
   const logout = async () => {
     try {
+      setIsLoggingOut(true)
       await axios.post(
         '/api/auth/logout',
         {},
@@ -26,8 +30,7 @@ const UserActions = ({ isOpen }: { isOpen: boolean }) => {
       )
       setUser(null)
       setToken(null)
-
-      await navigate('/login')
+      await navigate('/login', { replace: true })
     } catch (error) {
       console.error(error)
     }
@@ -42,7 +45,7 @@ const UserActions = ({ isOpen }: { isOpen: boolean }) => {
             isOpen ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          {user.displayName || user.email}
+          {user?.displayName || user?.email}
         </p>
       </Dropdown.Header>
       <Dropdown.Items className='p-4'>

@@ -32,8 +32,10 @@ export interface RegisterValidation extends LoginValidation {
 export type AuthStore = {
   token: string | null
   user: User | null
+  isLoggingOut: boolean
   setToken: (token: string | null) => void
   setUser: (user: User | null) => void
+  setIsLoggingOut: (isLoggingOut: boolean) => void
 }
 
 export type LoaderStore = {

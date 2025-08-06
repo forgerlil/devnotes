@@ -1,8 +1,13 @@
 import { useLocation, Outlet } from 'react-router'
 import NavBar from '@/components/generic/NavBar'
+import { useAuthStore } from '@/stores/AuthStore'
 
 const PublicLayout = () => {
   const { pathname } = useLocation()
+  const isLoggingOut = useAuthStore((state) => state.isLoggingOut)
+  const setIsLoggingOut = useAuthStore((state) => state.setIsLoggingOut)
+
+  if (isLoggingOut) setIsLoggingOut(false)
 
   const menuItems: Record<string, { primary?: boolean; content: string; to: string }[]> = {
     '/': [

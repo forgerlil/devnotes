@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import axios from 'axios'
 import AuthwallFallback from '@/components/auth/AuthwallFallback'
 import NotesFallback from '@/components/notes/NotesFallback'
+import ProtectedError from '@/components/error/ProtectedError'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 axios.defaults.withCredentials = true
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
       return { Component, loader: authwall }
     },
     HydrateFallback: NotesFallback,
+    errorElement: <ProtectedError />,
     children: [
       {
         index: true,
