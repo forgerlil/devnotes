@@ -66,9 +66,13 @@
 }
 
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 @plugin "daisyui" {
   themes: sunScreen --default, midnightOil --prefersdark;
 }
+
+/* Import highlight.js styles for syntax highlighting */
+@import 'highlight.js/styles/github-dark.css';
 
 @plugin "daisyui/theme" {
   name: 'sunScreen';
@@ -151,4 +155,11 @@ textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px var(--color-base-100) inset !important;
   -webkit-text-fill-color: --base-content !important;
+}
+
+/* ContentEditable placeholder styles */
+[contenteditable][data-placeholder]:empty:before {
+  content: attr(data-placeholder);
+  color: hsl(var(--bc) / 0.6);
+  pointer-events: none;
 }
